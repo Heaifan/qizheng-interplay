@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import { renderTacticalScene } from '@/rendering/tacticalCanvasRenderer';
 import { useGameStore } from '@/stores/gameStore';
@@ -16,7 +16,15 @@ let debugLoopLogSent = false;
 
 function canvasPointFromEvent(ev: MouseEvent, canvas: HTMLCanvasElement) {
   const rect = canvas.getBoundingClientRect();
-  return { x: ev.clientX - rect.left, y: ev.clientY - rect.top };
+  const rawX = ev.clientX - rect.left;
+  const rawY = ev.clientY - rect.top;
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const pos = { x: rawX * scaleX, y: rawY * scaleY };
+  // #region agent log
+  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro8',hypothesisId:'H1',location:'src/components/TacticalMapCanvas.vue:canvasPointFromEvent',message:'mouse mapped to canvas space',data:{clientX:ev.clientX,clientY:ev.clientY,rawX,rawY,scaleX,scaleY,mapped:pos,rectW:rect.width,rectH:rect.height,canvasW:canvas.width,canvasH:canvas.height},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
+  return pos;
 }
 
 function loop(ts: number) {
@@ -40,9 +48,11 @@ let drawing = false;
 function onDown(ev: MouseEvent) {
   const canvas = canvasRef.value;
   if (!canvas) return;
+  // #region agent log
+  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro8',hypothesisId:'H3',location:'src/components/TacticalMapCanvas.vue:onDown',message:'mousedown gate check',data:{button:ev.button,planningArmed:planningArmed.value,mode:mode.value,drawingBefore:drawing},timestamp:Date.now()})}).catch(()=>{});
+  // #endregion
   if (ev.button !== 0) return;
   if (!planningArmed.value) return;
-  if (mode.value !== 'planBlue' && mode.value !== 'planRed') return;
   drawing = true;
   planningArmed.value = false;
   game.beginPathAt(canvasPointFromEvent(ev, canvas));
@@ -58,7 +68,7 @@ function onContextMenu(ev: MouseEvent) {
   // #endregion
   planningArmed.value = game.selectPlannerByPoint(pos);
   // #region agent log
-  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro5',hypothesisId:'H1',location:'src/components/TacticalMapCanvas.vue:onContextMenu',message:'context menu handled',data:{afterPlanningArmed:planningArmed.value},timestamp:Date.now()})}).catch(()=>{});
+  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro8',hypothesisId:'H2',location:'src/components/TacticalMapCanvas.vue:onContextMenu',message:'context menu handled',data:{afterPlanningArmed:planningArmed.value},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 }
 
@@ -71,7 +81,7 @@ function onDoubleClick(ev: MouseEvent) {
   // #endregion
   planningArmed.value = game.selectPlannerByPoint(pos);
   // #region agent log
-  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro5',hypothesisId:'H2',location:'src/components/TacticalMapCanvas.vue:onDoubleClick',message:'double click handled',data:{afterPlanningArmed:planningArmed.value},timestamp:Date.now()})}).catch(()=>{});
+  fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro8',hypothesisId:'H2',location:'src/components/TacticalMapCanvas.vue:onDoubleClick',message:'double click handled',data:{afterPlanningArmed:planningArmed.value},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
 }
 
@@ -83,6 +93,13 @@ function onMove(ev: MouseEvent) {
 }
 
 function onUp() {
+  if (drawing) {
+    const snapshot = toValue(game.renderSnapshot);
+    // #region agent log
+    fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro15',hypothesisId:'H2',location:'src/components/TacticalMapCanvas.vue:onUp',message:'path draw finished',data:{mode:mode.value,pathLens:snapshot.units.map(u=>({id:u.id,pathLen:u.path.length,currentPathIdx:u.currentPathIdx}))},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+    game.finalizePathDrawing();
+  }
   drawing = false;
 }
 
@@ -105,7 +122,7 @@ function onTouchStart(ev: TouchEvent) {
   if (isDoubleTap) {
     planningArmed.value = game.selectPlannerByPoint(pos);
     ev.preventDefault();
-  } else if (planningArmed.value && (mode.value === 'planBlue' || mode.value === 'planRed')) {
+  } else if (planningArmed.value) {
     drawing = true;
     planningArmed.value = false;
     game.beginPathAt(pos);
@@ -128,6 +145,7 @@ function onTouchMove(ev: TouchEvent) {
 }
 
 function onTouchEnd() {
+  if (drawing) game.finalizePathDrawing();
   drawing = false;
 }
 

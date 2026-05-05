@@ -9,7 +9,7 @@ function createWindow() {
     height: 820,
     minWidth: 900,
     minHeight: 700,
-    title: '硬核战术规划模拟器',
+    title: '奇正相生-战斗模拟器',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

@@ -1,4 +1,4 @@
-﻿import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import type { BushCircle, CoverRect, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 /** Canvas 绘制 — 只读快照，不修改游戏状态 */
@@ -14,23 +14,62 @@ export interface TacticalRenderSnapshot {
 }
 
 let debugRenderCount = 0;
+let debugArrowLogCount = 0;
+
+function resolveArrowVector(points: Array<{ x: number; y: number }>, desiredLen: number): { fromX: number; fromY: number; toX: number; toY: number } | null {
+  if (points.length < 2) return null;
+  const to = points[points.length - 1]!;
+  let remain = desiredLen;
+
+  for (let i = points.length - 2; i >= 0; i--) {
+    const a = points[i]!;
+    const b = points[i + 1]!;
+    const segDx = b.x - a.x;
+    const segDy = b.y - a.y;
+    const segLen = Math.hypot(segDx, segDy);
+    if (segLen < 0.001) continue;
+
+    if (segLen >= remain) {
+      const ux = segDx / segLen;
+      const uy = segDy / segLen;
+      return {
+        fromX: b.x - ux * remain,
+        fromY: b.y - uy * remain,
+        toX: to.x,
+        toY: to.y,
+      };
+    }
+
+    remain -= segLen;
+  }
+
+  const first = points[0]!;
+  return { fromX: first.x, fromY: first.y, toX: to.x, toY: to.y };
+}
 
 function drawPathArrow(ctx: CanvasRenderingContext2D, fromX: number, fromY: number, toX: number, toY: number): void {
   const dx = toX - fromX;
   const dy = toY - fromY;
   const len = Math.hypot(dx, dy);
-  if (len < 16) return;
+  // #region agent log
+  if (debugArrowLogCount < 8) {
+    debugArrowLogCount++;
+    fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro13',hypothesisId:'H1',location:'src/rendering/tacticalCanvasRenderer.ts:drawPathArrow',message:'path arrow draw metrics',data:{fromX,fromY,toX,toY,len,modeHint:'plan_or_execute_shared'},timestamp:Date.now()})}).catch(()=>{});
+  }
+  // #endregion
+  if (len < 8) return;
 
   const ux = dx / len;
   const uy = dy / len;
-  const tipX = toX - ux * 6;
-  const tipY = toY - uy * 6;
-  const wing = 5;
+  const tipX = toX;
+  const tipY = toY;
+  const arrowLen = 16;
+  const wing = 8;
 
   ctx.beginPath();
   ctx.moveTo(tipX, tipY);
-  ctx.lineTo(tipX - ux * 10 - uy * wing, tipY - uy * 10 + ux * wing);
-  ctx.lineTo(tipX - ux * 10 + uy * wing, tipY - uy * 10 - ux * wing);
+  ctx.lineTo(tipX - ux * arrowLen - uy * wing, tipY - uy * arrowLen + ux * wing);
+  ctx.lineTo(tipX - ux * arrowLen + uy * wing, tipY - uy * arrowLen - ux * wing);
   ctx.closePath();
   ctx.fill();
 }
@@ -74,13 +113,14 @@ export function renderTacticalScene(ctx: CanvasRenderingContext2D, snap: Tactica
       ctx.setLineDash([]);
       if (snap.showPathArrow) {
         ctx.fillStyle = color;
-        const a = pathPoints[pathPoints.length - 2]!;
-        const b = pathPoints[pathPoints.length - 1]!;
-        drawPathArrow(ctx, a.x, a.y, b.x, b.y);
+        const arrowVec = resolveArrowVector(pathPoints, 28);
+        if (arrowVec) {
+          drawPathArrow(ctx, arrowVec.fromX, arrowVec.fromY, arrowVec.toX, arrowVec.toY);
+        }
         if (debugRenderCount < 8) {
           debugRenderCount++;
           // #region agent log
-          fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro7',hypothesisId:'H3',location:'src/rendering/tacticalCanvasRenderer.ts:renderTacticalScene',message:'rendered remaining path+single arrow',data:{unitId:u.id,pathLen:u.path.length,currentPathIdx:u.currentPathIdx,pathPoints:pathPoints.length,mode:snap.mode,showPathArrow:snap.showPathArrow},timestamp:Date.now()})}).catch(()=>{});
+          fetch('http://127.0.0.1:7525/ingest/a523c2c6-b217-4642-94e6-5b99fe0996b8',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'dc1890'},body:JSON.stringify({sessionId:'dc1890',runId:'repro14',hypothesisId:'H2',location:'src/rendering/tacticalCanvasRenderer.ts:renderTacticalScene',message:'rendered arrow with backtracked anchor',data:{unitId:u.id,pathLen:u.path.length,currentPathIdx:u.currentPathIdx,pathPoints:pathPoints.length,mode:snap.mode,showPathArrow:snap.showPathArrow,arrowVec},timestamp:Date.now()})}).catch(()=>{});
           // #endregion
         }
       }
