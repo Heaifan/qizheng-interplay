@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>硬核战术规划模拟器 (RTS)</title>
+    <style>
+        body { margin: 0; padding: 20px; background-color: #eceff1; font-family: "Microsoft YaHei", sans-serif; user-select: none; }
+        .header { text-align: center; margin-bottom: 10px; }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 15px; }
+        button { padding: 10px 15px; font-weight: bold; cursor: pointer; border: none; border-radius: 5px; color: white; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .btn-blue { background: #0288d1; } .btn-blue:hover { background: #01579b; }
+        .btn-red { background: #d32f2f; } .btn-red:hover { background: #b71c1c; }
+        .btn-exec { background: #2e7d32; } .btn-exec:hover { background: #1b5e20; }
+        .btn-reset { background: #616161; } .btn-reset:hover { background: #424242; }
+        button.active { outline: 3px solid #ffeb3b; transform: scale(1.05); }
+        button:disabled { background: #9e9e9e; cursor: not-allowed; transform: none; outline: none;}
+
+        .container { display: flex; justify-content: center; gap: 20px; }
+        canvas { background: #dcedc8; border: 2px solid #558b2f; border-radius: 4px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); cursor: crosshair; }
+
+        .log-panel { width: 320px; background: #263238; color: #eceff1; border-radius: 5px; display: flex; flex-direction: column; height: 600px; }
+        .log-header { padding: 10px; background: #37474f; font-weight: bold; text-align: center; border-radius: 5px 5px 0 0; }
+        .log-content { flex: 1; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 13px; line-height: 1.4; }
+        .log-entry { margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #37474f; }
+        .log-blue { color: #81d4fa; } .log-red { color: #ef9a9a; }
+        .log-hit { color: #ffeb3b; font-weight: bold; } .log-miss { color: #9e9e9e; } .log-kill { color: #ff5252; font-weight: bold; font-size: 1.1em;}
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h2>硬核战术规划模拟器</h2>
+        <p style="color:#555; margin:5px 0;">规划各自路线，点击执行后单位将自主交火！</p>
+    </div>
+
+    <div class="controls">
+        <button id="btn-blue" class="btn-blue">✎ 规划蓝方路线</button>
+        <button id="btn-red" class="btn-red">✎ 规划红方路线</button>
+        <button id="btn-exec" class="btn-exec">⚔️ 开始执行</button>
+        <button id="btn-reset" class="btn-reset">↺ 重置沙盘</button>
+    </div>
+
+    <div class="container">
+        <canvas id="tacticalMap" width="800" height="600"></canvas>
+        <div class="log-panel">
+            <div class="log-header">战斗日志</div>
+            <div class="log-content" id="log-content"></div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('tacticalMap');
+        const ctx = canvas.getContext('2d');
+        const logContent = document.getElementById('log-content');
+
+        // 状态控制
+        let mode = 'idle'; // idle, planBlue, planRed, executing, gameover
+        let shots = [];
+        let lastTime = 0;
+
+        // 地形数据
+        const covers = [
+            { x: 350, y: 150, w: 120, h: 40 },
+            { x: 300, y: 350, w: 40, h: 140 },
+            { x: 550, y: 300, w: 100, h: 90 }
+        ];
+        const bushes = [
+            { x: 200, y: 150, r: 50 },
+            { x: 650, y: 450, r: 65 },
+            { x: 450, y: 300, r: 45 }
+        ];
+
+        // 初始单位数据模板
+        const initUnitsData = [
+            { id: '蓝方', type: 'circle', startX: 150, startY: 300, color: '#81d4fa', stroke: '#0288d1', logColor: 'log-blue' },
+            { id: '红方', type: 'diamond', startX: 650, startY: 300, color: '#ef9a9a', stroke: '#d32f2f', logColor: 'log-red' }
+        ];
+        let units = [];
+
+        function initGame() {
+            units = initUnitsData.map(u => ({
+                ...u, x: u.startX, y: u.startY, hp: 100, dead: false, path: [], currentPathIdx: 0,
+                angle: u.type === 'circle' ? 0 : Math.PI, lastFireTime: 0
+            }));
+            shots = [];
+            mode = 'idle';
+            logContent.innerHTML = '';
+            document.getElementById('btn-blue').disabled = false;
+            document.getElementById('btn-red').disabled = false;
+            document.getElementById('btn-exec').disabled = false;
+            addLog('系统', '沙盘已初始化，等待指挥官下达路线指令...', 'log-miss');
+        }
+
+        // --- 数学辅助函数 ---
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+        }
+
+        // 线段与矩形相交检测 (判断掩体阻挡)
+        function lineRectIntersect(x1, y1, x2, y2, rx, ry, rw, rh) {
+            const left = lineLineIntersect(x1, y1, x2, y2, rx, ry, rx, ry+rh);
+            const right = lineLineIntersect(x1, y1, x2, y2, rx+rw, ry, rx+rw, ry+rh);
+            const top = lineLineIntersect(x1, y1, x2, y2, rx, ry, rx+rw, ry);
+            const bottom = lineLineIntersect(x1, y1, x2, y2, rx, ry+rh, rx+rw, ry+rh);
+            return left || right || top || bottom;
+        }
+
+        function lineLineIntersect(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (den === 0) return false;
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / den;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / den;
+            return (t >= 0 && t <= 1 && u >= 0 && u <= 1);
+        }
+
+        // 点(圆心)到线段的距离 (判断是否穿过灌木丛)
+        function distToSegment(px, py, x1, y1, x2, y2) {
+            const l2 = (x1 - x2)**2 + (y1 - y2)**2;
+            if (l2 == 0) return Math.hypot(px - x1, py - y1);
+            let t = ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.hypot(px - (x1 + t * (x2 - x1)), py - (y1 + t * (y2 - y1)));
+        }
+
+        // --- 核心逻辑 ---
+        function addLog(unitId, text, className) {
+            const time = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            let colorCls = unitId === '蓝方' ? 'log-blue' : (unitId === '红方' ? 'log-red' : '');
+            entry.innerHTML = `<span style="color:#81c784">[${time}]</span> <strong class="${colorCls}">${unitId}</strong>: <span class="${className}">${text}</span>`;
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight;
+        }
+
+        function update(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = timestamp - lastTime;
+            lastTime = timestamp;
+
+            if (mode === 'executing') {
+                const u0 = units[0], u1 = units[1];
+
+                // 移动逻辑
+                units.forEach(u => {
+                    if (u.dead || u.currentPathIdx >= u.path.length) return;
+                    const target = u.path[u.currentPathIdx];
+                    const dx = target.x - u.x; const dy = target.y - u.y;
+                    const dist = Math.hypot(dx, dy);
+                    const speed = 1.5; // 移动速度
+
+                    if (dist < speed) {
+                        u.x = target.x; u.y = target.y;
+                        u.currentPathIdx++;
+                    } else {
+                        u.x += (dx / dist) * speed; u.y += (dy / dist) * speed;
+                    }
+                });
+
+                // 战斗逻辑
+                if (!u0.dead && !u1.dead) {
+                    // 互相锁定瞄准
+                    u0.angle = Math.atan2(u1.y - u0.y, u1.x - u0.x);
+                    u1.angle = Math.atan2(u0.y - u1.y, u0.x - u1.x);
+
+                    // 开火检测 (每隔 600ms)
+                    units.forEach((shooter, idx) => {
+                        if (shooter.dead) return;
+                        const target = units[1 - idx];
+
+                        if (timestamp - shooter.lastFireTime > 600) {
+                            shooter.lastFireTime = timestamp;
+                            performAttack(shooter, target);
+                        }
+                    });
+                } else {
+                    mode = 'gameover';
+                    let winner = u0.dead ? u1.id : u0.id;
+                    addLog('指挥中心', `战斗结束！${winner} 取得胜利！`, 'log-kill');
+                }
+            }
+
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        function performAttack(shooter, target) {
+            // 1. 视线检测
+            let isBlocked = false;
+            for (let c of covers) {
+                if (lineRectIntersect(shooter.x, shooter.y, target.x, target.y, c.x, c.y, c.w, c.h)) {
+                    isBlocked = true; break;
+                }
+            }
+
+            if (isBlocked) {
+                // 掩体挡住了
+                shots.push({ x1: shooter.x, y1: shooter.y, x2: target.x, y2: target.y, color: 'rgba(158, 158, 158, 0.8)', alpha: 1, blocked: true });
+                return; // 不添加日志，避免刷屏，或者可以加一个安静的提示
+            }
+
+            // 2. 灌木丛减益检测
+            let inFoliage = false;
+            for (let b of bushes) {
+                if (distToSegment(b.x, b.y, shooter.x, shooter.y, target.x, target.y) < b.r) {
+                    inFoliage = true; break;
+                }
+            }
+
+            // 3. 命中计算
+            let hitChance = inFoliage ? 0.4 : 0.8; // 80% 基础，灌木丛降至 40%
+            let hit = Math.random() < hitChance;
+
+            shots.push({ x1: shooter.x, y1: shooter.y, x2: target.x, y2: target.y, color: hit ? 'rgba(255, 235, 59, 1)' : 'rgba(255, 255, 255, 0.5)', alpha: 1, blocked: false });
+
+            let prefix = inFoliage ? "(穿透射击) " : "";
+            if (hit) {
+                let dmg = Math.floor(Math.random() * 11) + 15; // 15-25 伤害
+                target.hp -= dmg;
+                addLog(shooter.id, `${prefix}命中目标！造成 ${dmg} 伤害！`, 'log-hit');
+                if (target.hp <= 0) {
+                    target.hp = 0; target.dead = true;
+                    addLog(target.id, "阵亡！", 'log-kill');
+                }
+            } else {
+                addLog(shooter.id, `${prefix}射击未命中。`, 'log-miss');
+            }
+        }
+
+        // --- 渲染逻辑 ---
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 画掩体
+            ctx.fillStyle = '#616161'; ctx.strokeStyle = '#424242'; ctx.lineWidth = 2;
+            covers.forEach(c => { ctx.fillRect(c.x, c.y, c.w, c.h); ctx.strokeRect(c.x, c.y, c.w, c.h); });
+
+            // 画灌木丛
+            ctx.fillStyle = 'rgba(124, 179, 66, 0.6)';
+            bushes.forEach(b => {
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.arc(b.x + 10, b.y - 10, b.r * 0.8, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // 画路径路线
+            units.forEach((u, i) => {
+                if (u.path.length > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(u.x, u.y);
+                    u.path.slice(u.currentPathIdx).forEach(p => ctx.lineTo(p.x, p.y));
+                    ctx.strokeStyle = i === 0 ? 'rgba(3, 169, 244, 0.5)' : 'rgba(244, 67, 54, 0.5)';
+                    ctx.lineWidth = 4;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            });
+
+            // 画子弹轨迹
+            for (let i = shots.length - 1; i >= 0; i--) {
+                let s = shots[i];
+                ctx.beginPath(); ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y2);
+                ctx.strokeStyle = s.color; ctx.globalAlpha = s.alpha; ctx.lineWidth = 2;
+                if(s.blocked) ctx.setLineDash([10, 10]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = 1.0;
+                s.alpha -= 0.05;
+                if (s.alpha <= 0) shots.splice(i, 1);
+            }
+
+            // 画单位和血条
+            units.forEach(u => {
+                ctx.save();
+                ctx.translate(u.x, u.y);
+
+                if (u.dead) ctx.globalAlpha = 0.3; // 阵亡半透明
+
+                // 画血条
+                if (!u.dead) {
+                    ctx.fillStyle = '#b71c1c'; ctx.fillRect(-20, -35, 40, 5);
+                    ctx.fillStyle = '#76ff03'; ctx.fillRect(-20, -35, 40 * (u.hp / 100), 5);
+                }
+
+                ctx.fillStyle = u.color; ctx.strokeStyle = u.stroke; ctx.lineWidth = 2;
+                if (u.type === 'circle') {
+                    ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                } else {
+                    ctx.beginPath(); ctx.moveTo(0, -25); ctx.lineTo(25, 0); ctx.lineTo(0, 25); ctx.lineTo(-25, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+                }
+
+                // 画指示箭头
+                ctx.rotate(u.angle);
+                ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(12, 0); ctx.lineTo(6, -6); ctx.moveTo(12, 0); ctx.lineTo(6, 6);
+                ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.restore();
+            });
+        }
+
+        // --- 交互事件 ---
+        let isDrawing = false;
+
+        function setBtnActive(id) {
+            ['btn-blue', 'btn-red', 'btn-exec'].forEach(btn => document.getElementById(btn).classList.remove('active'));
+            if(id) document.getElementById(id).classList.add('active');
+        }
+
+        document.getElementById('btn-blue').onclick = () => { if(mode==='idle'||mode==='planRed') { mode = 'planBlue'; setBtnActive('btn-blue'); units[0].path = []; units[0].currentPathIdx=0;} };
+        document.getElementById('btn-red').onclick = () => { if(mode==='idle'||mode==='planBlue') { mode = 'planRed'; setBtnActive('btn-red'); units[1].path = []; units[1].currentPathIdx=0;} };
+
+        document.getElementById('btn-exec').onclick = () => {
+            if (mode === 'planBlue' || mode === 'planRed' || mode === 'idle') {
+                mode = 'executing';
+                setBtnActive('btn-exec');
+                document.getElementById('btn-blue').disabled = true;
+                document.getElementById('btn-red').disabled = true;
+                addLog('系统', '命令已下达，行动开始！', 'log-miss');
+            }
+        };
+
+        document.getElementById('btn-reset').onclick = () => { initGame(); setBtnActive(null); };
+
+        canvas.addEventListener('mousedown', e => {
+            if (mode !== 'planBlue' && mode !== 'planRed') return;
+            isDrawing = true;
+            const pos = getMousePos(e);
+            let targetUnit = mode === 'planBlue' ? units[0] : units[1];
+            targetUnit.path = [{x: targetUnit.x, y: targetUnit.y}, pos]; // 重置路径并连接起点
+        });
+
+        window.addEventListener('mousemove', e => {
+            if (!isDrawing) return;
+            const pos = getMousePos(e);
+            let targetUnit = mode === 'planBlue' ? units[0] : units[1];
+
+            // 避免路径点过密，距离大于一定值才记录新点
+            const lastPoint = targetUnit.path[targetUnit.path.length - 1];
+            if (Math.hypot(pos.x - lastPoint.x, pos.y - lastPoint.y) > 15) {
+                targetUnit.path.push(pos);
+            }
+        });
+
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+
+        // 启动
+        initGame();
+        requestAnimationFrame(update);
+    </script>
+</body>
+</html>
