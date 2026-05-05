@@ -1,0 +1,32 @@
+{
+  "name": "qi-zheng-interplay",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "硬核战术规划模拟器 — Vue3 + Electron",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "dev:electron": "cross-env ELECTRON_DEV=1 concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && electron electron/main.cjs\"",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "start": "electron electron/main.cjs"
+  },
+  "dependencies": {
+    "pinia": "^3.0.4",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^36.0.0",
+    "typescript": "~5.7.3",
+    "vite": "^6.2.0",
+    "vue-tsc": "^2.2.8",
+    "wait-on": "^8.0.1"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
