@@ -30,6 +30,7 @@ export function createRuntimeUnitsFromTemplates(templates: readonly UnitTemplate
     path: [],
     currentPathIdx: 0,
     angle: t.type === 'circle' ? 0 : Math.PI,
+    fireAngle: t.type === 'circle' ? 0 : Math.PI,
     lastFireTime: 0,
   }));
 }

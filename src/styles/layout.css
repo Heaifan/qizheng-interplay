@@ -1,0 +1,53 @@
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  padding: 10px;
+  background-color: #eceff1;
+  font-family: 'Microsoft YaHei', sans-serif;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.tactical-app {
+  height: calc(100vh - 20px);
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.tactical-header {
+  text-align: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.tactical-header p {
+  color: #555;
+  margin: 5px 0;
+}
+
+.tactical-layout {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex: 1;
+  min-height: 0;
+}
+
+.battlefield-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: 0;
+}

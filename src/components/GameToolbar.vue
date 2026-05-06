@@ -52,19 +52,17 @@ onMounted(() => {
       ⏸
     </button>
     <button type="button" class="btn-player btn-edit" title="撤销路径编辑" :disabled="!canUndoPathEdit" @click="game.undoPathEdit()">
-      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-        <path
-          fill="currentColor"
-          d="M12 5a7 7 0 0 1 6.88 5.71 1 1 0 1 1-1.97.34A5 5 0 0 0 12 7H8.41l1.3 1.29a1 1 0 1 1-1.42 1.42l-3-3a1 1 0 0 1 0-1.42l3-3a1 1 0 1 1 1.42 1.42L8.41 5H12z"
-        />
+      <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M3 10h10a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5H9" />
+        <polyline fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="7,6 3,10 7,14" />
       </svg>
     </button>
     <button type="button" class="btn-player btn-edit" title="重做路径编辑" :disabled="!canRedoPathEdit" @click="game.redoPathEdit()">
-      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-        <path
-          fill="currentColor"
-          d="M12 5a7 7 0 0 0-6.88 5.71 1 1 0 1 0 1.97.34A5 5 0 0 1 12 7h3.59l-1.3 1.29a1 1 0 1 0 1.42 1.42l3-3a1 1 0 0 0 0-1.42l-3-3a1 1 0 1 0-1.42 1.42L15.59 5H12z"
-        />
+      <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true">
+        <path fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+          d="M21 10H11a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h4" />
+        <polyline fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="17,6 21,10 17,14" />
       </svg>
     </button>
     <button type="button" class="btn-player btn-step" title="上一步" :disabled="!canStepBack" @click="game.stepBackward()">⏮</button>

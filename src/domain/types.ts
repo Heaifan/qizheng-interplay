@@ -39,7 +39,10 @@ export interface RuntimeUnit extends UnitTemplate {
   dead: boolean;
   path: Point[];
   currentPathIdx: number;
+  /** Movement-facing direction */
   angle: number;
+  /** Fire-control direction used by ZOC sector */
+  fireAngle: number;
   lastFireTime: number;
 }
 
