@@ -61,10 +61,10 @@ export function createCombatActions(d: CombatDeps) {
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        d.addLog(attacker.id, `命中 ${target.id} -${damage}HP`, 'log-hit');
+        d.addLog(attacker.id, `→ ${target.id}：造成 ${damage} 伤害`, 'log-hit');
       }
     } else {
-      d.addLog(attacker.id, `射击 ${target.id} 未命中`, 'log-miss');
+      d.addLog(attacker.id, `→ ${target.id}：未命中`, 'log-miss');
     }
   }
 

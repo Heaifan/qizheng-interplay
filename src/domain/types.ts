@@ -87,7 +87,7 @@ export interface ShotTrail {
   blocked: boolean;
 }
 
-export type LogTone = 'log-hit' | 'log-miss' | 'log-kill' | '';
+export type LogTone = 'log-hit' | 'log-miss' | 'log-kill' | 'log-system' | '';
 
 export interface LogEntry {
   timeLabel: string;

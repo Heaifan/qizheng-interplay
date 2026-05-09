@@ -10,7 +10,8 @@ body,
 body {
   margin: 0;
   padding: 10px;
-  background-color: #eceff1;
+  background: var(--app-bg);
+  color: var(--text-main);
   font-family: 'Microsoft YaHei', sans-serif;
   user-select: none;
   box-sizing: border-box;
@@ -30,8 +31,12 @@ body {
   flex-shrink: 0;
 }
 
+.tactical-header h2 {
+  color: var(--text-main);
+}
+
 .tactical-header p {
-  color: #555;
+  color: var(--text-muted);
   margin: 5px 0;
 }
 

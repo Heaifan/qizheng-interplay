@@ -2,7 +2,13 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import type { BushCircle, CoverRect, RuntimeUnit, ShotTrail } from '@/domain/types';
 import type { ReadabilityHint } from '@/game/readability';
 import { drawGridAndScale, drawCovers, drawBushes } from './drawTerrain';
-import { drawThreatZones, type ThreatZone } from './drawSectors';
+import {
+  drawPerceptionField,
+  drawFireField,
+  drawFireFieldWeak,
+  drawControlField,
+  type UnitFieldData,
+} from './drawSectors';
 import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
 import { drawShots, drawUnits } from './drawUnits';
 
@@ -11,7 +17,7 @@ export interface TacticalRenderSnapshot {
   bushes: readonly BushCircle[];
   units: readonly RuntimeUnit[];
   shots: readonly ShotTrail[];
-  threatZones: ReadonlyArray<ThreatZone>;
+  unitFields: ReadonlyArray<UnitFieldData>;
   readabilityHints: ReadonlyArray<ReadabilityHint>;
   mode: string;
   showPlannedPath: boolean;
@@ -25,10 +31,20 @@ export function renderTacticalScene(
 ): void {
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawGridAndScale(ctx);
-  drawThreatZones(ctx, snap.threatZones);
-  drawReadabilityLines(ctx, snap.readabilityHints);
   drawCovers(ctx, snap.covers);
   drawBushes(ctx, snap.bushes);
+  const hlId = snap.highlightedUnitId;
+  const hlFields = hlId ? snap.unitFields.filter((f) => f.unitId === hlId) : [];
+  const otherFields = hlId ? snap.unitFields.filter((f) => f.unitId !== hlId) : snap.unitFields;
+
+  if (hlId) {
+    drawPerceptionField(ctx, hlFields);
+    drawFireField(ctx, hlFields);
+    drawControlField(ctx, hlFields);
+    drawFireFieldWeak(ctx, otherFields);
+  } else {
+    drawFireFieldWeak(ctx, otherFields);
+  }
 
   if (snap.showPlannedPath) {
     for (let i = 0; i < snap.units.length; i++) {
@@ -36,8 +52,8 @@ export function renderTacticalScene(
       const remaining = u.path.slice(Math.max(0, u.currentPathIdx));
       if (remaining.length < 1) continue;
       const color = i === 0
-        ? 'rgba(3, 169, 244, 0.8)'
-        : 'rgba(244, 67, 54, 0.8)';
+        ? 'rgba(74, 126, 168, 0.75)'
+        : 'rgba(184, 90, 77, 0.75)';
       drawPlannedPath(
         ctx,
         [{ x: u.x, y: u.y }, ...remaining],
@@ -48,6 +64,7 @@ export function renderTacticalScene(
     }
   }
 
+  drawReadabilityLines(ctx, snap.readabilityHints);
   drawShots(ctx, snap.shots);
   drawUnits(ctx, snap.units, snap.highlightedUnitId);
 }

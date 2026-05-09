@@ -34,17 +34,19 @@ export function drawUnits(
     if (isHighlighted) {
       ctx.beginPath();
       ctx.arc(0, 0, 28, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255, 183, 77, 0.25)';
+      ctx.fillStyle = 'rgba(184, 138, 46, 0.22)';
       ctx.fill();
-      ctx.strokeStyle = '#ffb74d';
+      ctx.strokeStyle = '#B88A2E';
       ctx.lineWidth = 3;
+      ctx.globalAlpha = 0.9;
       ctx.stroke();
+      ctx.globalAlpha = u.dead ? 0.3 : 1;
     }
 
     if (!u.dead) {
-      ctx.fillStyle = '#b71c1c';
+      ctx.fillStyle = '#8D6E63';
       ctx.fillRect(-20, -35, 40, 5);
-      ctx.fillStyle = '#76ff03';
+      ctx.fillStyle = '#81C784';
       ctx.fillRect(-20, -35, 40 * (u.hp / 100), 5);
     }
 
@@ -74,7 +76,7 @@ export function drawUnits(
     ctx.lineTo(6, -6);
     ctx.moveTo(12, 0);
     ctx.lineTo(6, 6);
-    ctx.strokeStyle = '#222';
+    ctx.strokeStyle = '#2F2A22';
     ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();

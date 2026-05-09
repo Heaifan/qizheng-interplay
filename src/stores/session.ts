@@ -34,7 +34,7 @@ export function createSessionActions(d: SessionDeps) {
     d.timeline.value = [];
     d.timelineIndex.value = 0;
     d.toolbarHighlight.value = null;
-    d.addLog('系统', '右键单位后开始绘制路径。', 'log-miss');
+    d.addLog('系统', '右键单位后开始绘制路径。', 'log-system');
     d.timeline.value.push(d.takeSnapshot());
   }
 
@@ -50,7 +50,7 @@ export function createSessionActions(d: SessionDeps) {
       d.mode.value = nearest.idx === 0 ? 'planBlue' : 'planRed';
     }
     d.toolbarHighlight.value = nearest.idx === 0 ? 'blue' : 'red';
-    d.addLog('系统', `已选择${nearest.id}，可开始绘制路径。`, 'log-miss');
+    d.addLog('系统', `已选择${nearest.id}，可开始绘制路径。`, 'log-system');
     return true;
   }
 

@@ -51,19 +51,19 @@ export function createExecutionActions(d: ExecutionDeps) {
     d.mode.value = 'executing';
     d.executionState.value = 'running';
     d.toolbarHighlight.value = 'exec';
-    d.addLog('系统', '命令已下达，单位开始沿路径移动。', 'log-miss');
+    d.addLog('系统', '命令已下达，单位开始沿路径移动。', 'log-system');
   }
 
   function pauseExecution(): void {
     if (d.mode.value !== 'executing') return;
     d.executionState.value = 'paused';
-    d.addLog('系统', '执行已暂停。', 'log-miss');
+    d.addLog('系统', '推演已暂停。', 'log-system');
   }
 
   function resumeExecution(): void {
     if (d.mode.value !== 'executing') return;
     d.executionState.value = 'running';
-    d.addLog('系统', '执行已恢复。', 'log-miss');
+    d.addLog('系统', '推演已恢复。', 'log-system');
   }
 
   return { runSimulationTick, tick, startExecution, pauseExecution, resumeExecution };

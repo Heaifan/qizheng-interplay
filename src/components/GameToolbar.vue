@@ -32,37 +32,74 @@ function onScrub(ev: Event) {
 
 <template>
   <div class="tactical-controls player-bar">
+    <!-- 播放 -->
     <button type="button" class="btn-player btn-play"
       :class="{ active: toolbarHighlight === 'exec' && executionState === 'running' }"
-      title="播放/继续" @click="onPlay">▶</button>
+      title="播放 / 继续" @click="onPlay">
+      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <path d="M8 6L18 12L8 18V6Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- 暂停 -->
     <button type="button" class="btn-player btn-pause"
-      title="暂停" :disabled="mode !== 'executing'" @click="onPause">⏸</button>
+      title="暂停" :disabled="mode !== 'executing'" @click="onPause">
+      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <rect x="7" y="6" width="4" height="12" rx="1" fill="currentColor"/>
+        <rect x="13" y="6" width="4" height="12" rx="1" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- 撤销 -->
     <button type="button" class="btn-player btn-edit" title="撤销路径编辑"
       :disabled="!canUndoPathEdit" @click="game.undoPathEdit()">
-      <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
-          d="M3 10h10a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5H9" />
-        <polyline fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
-          points="7,6 3,10 7,14" />
+      <svg class="toolbar-icon icon-md" viewBox="0 0 24 24" fill="none">
+        <path d="M9 8L5 12L9 16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M6 12H13C16.314 12 19 14.686 19 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
+
+    <!-- 重做 -->
     <button type="button" class="btn-player btn-edit" title="重做路径编辑"
       :disabled="!canRedoPathEdit" @click="game.redoPathEdit()">
-      <svg class="toolbar-icon" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
-          d="M21 10H11a5 5 0 0 0-5 5v0a5 5 0 0 0 5 5h4" />
-        <polyline fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
-          points="17,6 21,10 17,14" />
+      <svg class="toolbar-icon icon-md" viewBox="0 0 24 24" fill="none">
+        <path d="M15 8L19 12L15 16" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M18 12H11C7.686 12 5 14.686 5 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </button>
+
+    <!-- 单步后退 -->
     <button type="button" class="btn-player btn-step" title="上一步"
-      :disabled="!canStepBack" @click="game.stepBackward()">⏮</button>
+      :disabled="!canStepBack" @click="game.stepBackward()">
+      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <rect x="5" y="6" width="2.5" height="12" rx="1" fill="currentColor"/>
+        <path d="M18 6L9.5 12L18 18V6Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- 时间轴 -->
     <input class="player-slider" type="range"
       :min="playbackMin" :max="playbackMax" :value="timelineIndex"
       :disabled="playbackMax === 0" @input="onScrub" />
+
+    <!-- 单步前进 -->
     <button type="button" class="btn-player btn-step" title="下一步"
-      :disabled="!canStepForward" @click="game.stepForward()">⏭</button>
+      :disabled="!canStepForward" @click="game.stepForward()">
+      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <rect x="16.5" y="6" width="2.5" height="12" rx="1" fill="currentColor"/>
+        <path d="M6 6L14.5 12L6 18V6Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- 重置 -->
     <button type="button" class="btn-player btn-reset"
-      title="重置沙盘" @click="game.resetSandbox()">↺</button>
+      title="重置沙盘" @click="game.resetSandbox()">
+      <svg class="toolbar-icon icon-md" viewBox="0 0 24 24" fill="none">
+        <path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+          d="M5 8C6.564 5.313 9.355 3.5 12.5 3.5C17.194 3.5 21 7.306 21 12C21 16.694 17.194 20.5 12.5 20.5C8.816 20.5 5.652 18.021 4 14.554" />
+        <polyline fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
+          points="7,4 3,8 7,12" />
+      </svg>
+    </button>
   </div>
 </template>

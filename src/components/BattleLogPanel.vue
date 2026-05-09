@@ -30,6 +30,23 @@ function sideClass(unitId: string): string {
   if (unitId === '红方') return 'log-red';
   return '';
 }
+
+function eventTag(tone: string): string {
+  const map: Record<string, string> = {
+    'log-hit': '[命中]',
+    'log-miss': '[射击]',
+    'log-kill': '[结束]',
+    'log-system': '[系统]',
+    '': '[命令]',
+  };
+  return map[tone] ?? '';
+}
+
+function entryRowClass(tone: string): string {
+  if (tone === 'log-hit') return 'log-entry log-entry--hit';
+  if (tone === 'log-kill') return 'log-entry log-entry--kill';
+  return 'log-entry';
+}
 </script>
 
 <template>
@@ -45,14 +62,13 @@ function sideClass(unitId: string): string {
         :class="['tab-btn', { active: uiPanelTab === 'editor' }]"
         @click="selectTab('editor')"
       >
-        单位编辑
+        单位档案
       </button>
     </div>
     <div v-show="uiPanelTab === 'log'" ref="scrollRoot" class="log-content">
-      <div v-for="(entry, i) in logs" :key="i" class="log-entry">
-        <span style="color: #81c784">[{{ entry.timeLabel }}]</span>
-        <strong :class="sideClass(entry.unitId)">{{ entry.unitId }}</strong
-        >:
+      <div v-for="(entry, i) in logs" :key="i" :class="entryRowClass(entry.tone)">
+        <span class="log-time">[{{ entry.timeLabel }}]</span><span class="log-tag">{{ eventTag(entry.tone) }}</span>
+        <strong v-if="entry.unitId !== '系统'" :class="sideClass(entry.unitId)">{{ entry.unitId }}</strong>
         <span :class="entry.tone">{{ entry.text }}</span>
       </div>
     </div>
@@ -61,31 +77,57 @@ function sideClass(unitId: string): string {
 </template>
 
 <style scoped>
+.log-time {
+  color: #B88A2E;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.log-tag {
+  color: #8A8477;
+  font-size: 12px;
+  margin-right: 2px;
+}
+
+.log-entry--hit {
+  background: rgba(185, 111, 44, 0.08);
+  border-radius: 3px;
+  padding-left: 4px;
+}
+
+.log-entry--kill {
+  background: rgba(169, 68, 56, 0.10);
+  border-radius: 3px;
+  padding-left: 4px;
+}
+</style>
+
+<style scoped>
 .tab-bar {
   display: flex;
-  border-radius: 5px 5px 0 0;
-  overflow: hidden;
   flex-shrink: 0;
+  border-bottom: 1px solid var(--panel-divider);
 }
 
 .tab-btn {
   flex: 1;
-  padding: 8px 0;
+  padding: 10px 0;
   border: none;
-  background: #37474f;
-  color: #78909c;
-  font-size: 13px;
-  font-weight: bold;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
 .tab-btn.active {
-  background: #263238;
-  color: #ffb74d;
+  color: var(--text-main);
+  border-bottom: 2px solid var(--accent);
+  background: rgba(184, 138, 46, 0.08);
 }
 
 .tab-btn:hover:not(.active) {
-  color: #b0bec5;
+  color: var(--text-muted);
 }
 </style>

@@ -62,108 +62,101 @@ const actionOptions: { value: WeaponAction; label: string }[] = [
 
 <template>
   <div class="unit-editor">
-    <!-- 单位选择 -->
-    <div class="editor-section">
-      <label class="section-label">单位选择</label>
+    <!-- 单位选择卡片 -->
+    <div class="editor-card">
+      <div class="card-title">单位选择</div>
       <div class="unit-toggle">
         <button
-          :class="['toggle-btn', { active: selectedIdx === 0 }]"
+          :class="['toggle-btn blue', { active: selectedIdx === 0 }]"
           @click="selectedIdx = 0"
         >
           蓝方
         </button>
         <button
-          :class="['toggle-btn', { active: selectedIdx === 1 }]"
+          :class="['toggle-btn red', { active: selectedIdx === 1 }]"
           @click="selectedIdx = 1"
         >
           红方
         </button>
       </div>
-      <div class="profile-label">{{ editing.name }}</div>
+      <div class="profile-subtitle">当前：{{ editing.name }}</div>
     </div>
 
-    <!-- 基本信息 -->
-    <div class="editor-section">
-      <label class="section-label">名称</label>
-      <input v-model="editing.name" type="text" class="field-input" />
-    </div>
-
-    <!-- 三状态 -->
-    <div class="editor-section">
-      <label class="section-label">三状态</label>
+    <!-- 基本信息卡片 -->
+    <div class="editor-card">
+      <div class="card-title">基本信息</div>
       <div class="field-row">
-        <span>体能</span>
+        <span class="field-label">名称</span>
+        <input v-model="editing.name" type="text" class="field-input" />
+      </div>
+    </div>
+
+    <!-- 三状态卡片 -->
+    <div class="editor-card">
+      <div class="card-title">三状态</div>
+      <div class="stat-row">
+        <span class="field-label">体能</span>
         <input v-model.number="editing.states.stamina" type="number" min="0" max="100" class="field-num" />
       </div>
-      <div class="field-row">
-        <span>士气</span>
+      <div class="stat-row">
+        <span class="field-label">士气</span>
         <input v-model.number="editing.states.morale" type="number" min="0" max="100" class="field-num" />
       </div>
-      <div class="field-row">
-        <span>专注</span>
+      <div class="stat-row">
+        <span class="field-label">专注</span>
         <input v-model.number="editing.states.focus" type="number" min="0" max="100" class="field-num" />
       </div>
     </div>
 
-    <!-- 六力 -->
-    <div class="editor-section">
-      <label class="section-label">六力</label>
-      <div class="field-row">
-        <span>打击力</span>
+    <!-- 六力卡片（两列） -->
+    <div class="editor-card">
+      <div class="card-title">六力</div>
+      <div class="force-grid">
+        <span class="field-label">打击力</span>
         <input v-model.number="editing.forces.strike" type="number" min="0" max="100" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span>生存力</span>
+        <span class="field-label">生存力</span>
         <input v-model.number="editing.forces.survival" type="number" min="0" max="100" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span>机动力</span>
+        <span class="field-label">机动力</span>
         <input v-model.number="editing.forces.mobility" type="number" min="0" max="100" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span>感知力</span>
+        <span class="field-label">感知力</span>
         <input v-model.number="editing.forces.perception" type="number" min="0" max="100" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span>控制力</span>
+        <span class="field-label">控制力</span>
         <input v-model.number="editing.forces.control" type="number" min="0" max="100" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span>保障力</span>
+        <span class="field-label">保障力</span>
         <input v-model.number="editing.forces.sustainment" type="number" min="0" max="100" class="field-num" />
       </div>
     </div>
 
-    <!-- 武器参数 -->
-    <div class="editor-section">
-      <label class="section-label">武器参数</label>
+    <!-- 武器参数卡片 -->
+    <div class="editor-card">
+      <div class="card-title">武器参数</div>
       <div class="field-row">
-        <span>名称</span>
-        <input v-model="editing.weapon.name" type="text" class="field-input" style="flex:1" />
+        <span class="field-label">名称</span>
+        <input v-model="editing.weapon.name" type="text" class="field-input" />
       </div>
       <div class="field-row">
-        <span>口径 (mm)</span>
+        <span class="field-label">口径 (mm)</span>
         <input v-model.number="editing.weapon.caliber" type="number" min="0" step="0.01" class="field-num" />
       </div>
       <div class="field-row">
-        <span>枪机</span>
+        <span class="field-label">枪机</span>
         <select v-model="editing.weapon.action" class="field-select">
           <option v-for="o in actionOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
         </select>
       </div>
       <div class="field-row">
-        <span>枪管长 (mm)</span>
+        <span class="field-label">枪管长 (mm)</span>
         <input v-model.number="editing.weapon.barrelLength" type="number" min="0" class="field-num" />
       </div>
       <div class="field-row">
-        <span>瞄具倍率</span>
+        <span class="field-label">瞄具倍率</span>
         <input v-model.number="editing.weapon.sightMag" type="number" min="0" step="0.1" class="field-num" />
       </div>
     </div>
 
-    <!-- 武器推导结果 -->
-    <div class="editor-section derived">
-      <label class="section-label">武器推导结果</label>
+    <!-- 武器推导结果卡片 -->
+    <div class="editor-card derived-card">
+      <div class="derived-title">武器推导结果</div>
       <div class="derived-row">
         <span>精度</span>
         <strong>{{ weaponStats.accuracy.toFixed(3) }}</strong>
@@ -186,144 +179,203 @@ const actionOptions: { value: WeaponAction; label: string }[] = [
       </div>
     </div>
 
-    <!-- Apply -->
-    <button class="apply-btn" @click="apply">应用</button>
+    <!-- 应用参数 -->
+    <button class="apply-btn" @click="apply">应用参数</button>
   </div>
 </template>
 
 <style scoped>
 .unit-editor {
   flex: 1;
-  padding: 8px 10px;
+  padding: 10px 12px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.editor-section {
-  background: #37474f;
-  border-radius: 4px;
-  padding: 6px 8px;
+.editor-card {
+  background: var(--panel-card);
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 10px 12px;
 }
 
-.section-label {
-  display: block;
-  font-size: 11px;
-  color: #ffb74d;
-  font-weight: bold;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #A07D2A;
+  border-bottom: 1px solid var(--panel-divider);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
 }
 
 .unit-toggle {
   display: flex;
   gap: 4px;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .toggle-btn {
   flex: 1;
-  padding: 4px 0;
-  border: 1px solid #546e7a;
-  background: #263238;
-  color: #90a4ae;
-  border-radius: 3px;
+  padding: 6px 0;
+  border: 1px solid var(--panel-border);
+  background: var(--panel-card-soft);
+  color: var(--text-muted);
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: bold;
 }
 
-.toggle-btn.active {
-  border-color: #ffb74d;
-  color: #ffb74d;
-  background: #37474f;
+.toggle-btn.blue.active {
+  background: var(--blue-force);
+  color: var(--text-inverse);
+  border-color: var(--blue-force);
 }
 
-.profile-label {
-  font-size: 11px;
-  color: #81c784;
+.toggle-btn.red.active {
+  background: var(--red-force);
+  color: var(--text-inverse);
+  border-color: var(--red-force);
+}
+
+.profile-subtitle {
+  font-size: 12px;
+  color: var(--text-muted);
   text-align: center;
 }
 
 .field-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: 2px;
-  font-size: 12px;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
-.field-row span {
-  color: #b0bec5;
-  flex: 0 0 70px;
+.field-label {
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  flex: 0 0 80px;
 }
 
 .field-num {
-  width: 70px;
-  padding: 2px 4px;
-  background: #263238;
-  border: 1px solid #546e7a;
-  color: #eceff1;
-  border-radius: 2px;
-  font-size: 12px;
+  width: 80px;
+  padding: 4px 6px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-size: 13px;
   text-align: right;
+  height: 26px;
+  box-sizing: border-box;
+}
+
+.field-num:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 2px rgba(184, 138, 46, 0.18);
 }
 
 .field-input {
   flex: 1;
-  padding: 2px 4px;
-  background: #263238;
-  border: 1px solid #546e7a;
-  color: #eceff1;
-  border-radius: 2px;
-  font-size: 12px;
+  padding: 4px 6px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-size: 13px;
+  height: 26px;
+  box-sizing: border-box;
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 2px rgba(184, 138, 46, 0.18);
 }
 
 .field-select {
   width: 140px;
-  padding: 2px 4px;
-  background: #263238;
-  border: 1px solid #546e7a;
-  color: #eceff1;
-  border-radius: 2px;
-  font-size: 12px;
+  padding: 4px 6px;
+  background: var(--input-bg);
+  color: var(--text-main);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  font-size: 13px;
+  height: 26px;
+  box-sizing: border-box;
 }
 
-.derived {
-  background: #1b5e20;
+.field-select:focus {
+  outline: none;
+  border-color: var(--input-focus);
+}
+
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 80px;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.force-grid {
+  display: grid;
+  grid-template-columns: 1fr 80px 1fr 80px;
+  gap: 8px 10px;
+  align-items: center;
+}
+
+.derived-card {
+  background: var(--derived-bg);
+  border: 1px solid var(--derived-border);
+}
+
+.derived-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--derived-title);
+  border-bottom: 1px solid var(--derived-border);
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
 }
 
 .derived-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  margin-bottom: 2px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  margin-bottom: 5px;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .derived-row span {
-  color: #a5d6a7;
+  color: var(--text-muted);
 }
 
 .derived-row strong {
-  color: #76ff03;
-  font-family: monospace;
+  color: var(--derived-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
 }
 
 .apply-btn {
-  padding: 8px;
-  background: #ffb74d;
-  color: #263238;
-  border: none;
-  border-radius: 4px;
-  font-weight: bold;
-  font-size: 13px;
+  width: 100%;
+  height: 36px;
+  background: var(--accent);
+  color: #2A2418;
+  border: 1px solid #9F7625;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 14px;
   cursor: pointer;
-  text-transform: uppercase;
 }
 
 .apply-btn:hover {
-  background: #ffa726;
+  background: var(--accent-hover);
 }
 </style>

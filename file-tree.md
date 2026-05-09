@@ -1,79 +1,299 @@
-# 项目文件树 — 奇正相生-战斗模拟器
+# 项目文件树 — 奇正相生：战斗模拟器
 
-```
+> 本文件用于记录项目目录结构、模块职责与版本演进。  
+> 每次 AI 或人工修改代码后，如涉及新增、删除、重命名文件，必须同步更新本文档。
+
+---
+
+## 1. 项目概览
+
+**奇正相生** 是《孙子引擎》的第一阶段原型，用于验证：
+
+- 1v1 战术推演沙盒；
+- 路径规划与时间轴回放；
+- 武器参数与单位战斗档案；
+- 后续六力模型、三状态与无 HP 伤势系统接入。
+
+当前技术栈：
+
+| 类型 | 技术 |
+|---|---|
+| 前端框架 | Vue 3 |
+| 状态管理 | Pinia |
+| 构建工具 | Vite |
+| 桌面封装 | Electron |
+| 渲染方式 | Canvas 2D |
+| 语言 | TypeScript |
+
+---
+
+## 2. 顶层目录结构
+
+```text
 qi-zheng-interplay/
-├── index.html                         # HTML 入口，挂载 #app，引入 /src/main.ts
-├── package.json                       # 项目元信息与依赖声明（Vue3 + Pinia + Electron）
-├── tsconfig.json                      # TypeScript 编译配置（strict, ESNext, Bundler）
-├── vite.config.ts                     # Vite 构建配置（Vue 插件 + @/ 别名）
-├── env.d.ts                           # Vite/Vue SFC 类型声明
-├── file-tree.md                       # 本文件 — 项目文件树与各文件职责说明
-├── electron/
-│   └── main.cjs                       # Electron 主进程：创建 BrowserWindow，dev/prod 模式切换
-└── src/
-    ├── main.ts                        # 应用入口：创建 Pinia + Vue App，引入 4 个 CSS 文件
-    ├── app/
-    │   └── App.vue                    # 根布局组件：三栏结构（地图+工具栏 | 日志面板）
-    ├── domain/                        # 纯数据与几何层（5 文件，无框架依赖）
-    │   ├── types.ts                   # 全部 TS 类型定义（GameMode, RuntimeUnit, ShotTrail, LogEntry 等）
-    │   ├── constants.ts               # 画布尺寸、网格比例、移动速度、弹道衰减等基础常量
-    │   ├── units.ts                   # 单位模板数据（蓝方圆/红方菱）+ RuntimeUnit 工厂函数
-    │   ├── geometry.ts                # 纯几何计算：线段相交、矩形遮挡判定、灌木距离判定
-    │   └── terrain.ts                 # 关卡地形数据：掩体矩形数组 + 灌木圆形数组
-    ├── game/                          # 游戏逻辑层（5 文件，纯函数 + composable 模式）
-    │   ├── movement.ts                # 路径推进：每帧沿路径移动单位，更新位置与朝向
-    │   ├── combat.ts                  # 射击与命中判定：tryFire, 冷却, 伤害计算, 掩体/灌木修正
-    │   ├── path-editing.ts            # 路径编辑全流程：begin, extend, smooth, finalize, undo, redo
-    │   ├── timeline.ts                # 时间轴管理：快照 clone/restore, commit, persistBaseline
-    │   └── readability.ts             # 可读性计算：火力/视野扇区常量, normalizeAngle, 命中估算
-    ├── stores/                        # Pinia 状态管理层（5 文件）
-    │   ├── gameStore.ts               # 核心 Store：声明所有 reactive state，组装 composable 并导出
-    │   ├── derived.ts                 # 派生状态：readabilityHints + renderSnapshot computed
-    │   ├── execution.ts               # 执行控制：tick, runSimulationTick, start/pause/resume
-    │   ├── session.ts                 # 会话管理：initGame, selectPlannerByPoint
-    │   └── playback.ts                # 回放控制：stepBackward, stepForward, seekTimeline
-    ├── rendering/                     # Canvas 渲染层（5 文件，纯函数，接收只读快照）
-    │   ├── tacticalCanvasRenderer.ts  # 渲染协调器：clearRect + 依次调用各子渲染函数
-    │   ├── drawTerrain.ts             # 地形渲染：网格线 + 比例尺 + 掩体矩形 + 灌木丛
-    │   ├── drawSectors.ts             # 扇区渲染：火力扇区（实线半透明）+ 视野扇区（虚线）
-    │   ├── drawPathsShots.ts          # 路径与可读性渲染：规划路径线/箭头 + 交火可读性连线
-    │   └── drawUnits.ts               # 单位渲染：圆形/菱形 + 血条 + 方向指示器 + 弹道轨迹
-    ├── components/                    # Vue 组件层
-    │   ├── TacticalMapCanvas.vue      # Canvas 交互组件：模板 + 事件绑定（~50行）
-    │   ├── GameToolbar.vue            # 底部播放器栏：播放/暂停/步进/撤销/重做/滑条/重置
-    │   ├── BattleLogPanel.vue         # 右侧战斗日志面板：实时滚动显示 T+Xs 格式事件
-    │   └── canvas/                    # Canvas 输入/动画子模块（3 文件）
-    │       ├── useCanvasInput.ts      # 鼠标输入处理：坐标转换 + mousedown/move/up/context/dblclick
-    │       ├── useCanvasTouch.ts      # 触摸输入处理：touchstart/move/end + 双击检测
-    │       └── useAnimationLoop.ts    # requestAnimationFrame 循环：tick + renderTacticalScene
-    ├── styles/                        # CSS 样式（4 文件，按视觉区域拆分）
-    │   ├── layout.css                 # html/body/app/header/tactical-layout 布局样式
-    │   ├── controls.css               # 播放器栏/按钮/滑条/active/disabled 状态样式
-    │   ├── battlefield.css            # Canvas 地图/右键菜单样式
-    │   └── log-panel.css              # 日志面板/头部/内容/条目/Tone 颜色样式
-    └── utils/
-        └── timeFormat.ts              # 时间格式化工具（Date.toLocaleTimeString）
+├── electron/                 # Electron 主进程与启动包装
+├── src/                      # 主程序源码
+├── index.html                # HTML 入口
+├── package.json              # 项目依赖与脚本
+├── tsconfig.json             # TypeScript 配置
+├── vite.config.ts            # Vite 配置
+├── env.d.ts                  # Vite / Vue 类型声明
+└── file-tree.md              # 项目结构说明文档
 ```
 
-## 模块依赖方向
+---
 
+## 3. src 目录结构
+
+```text
+src/
+├── main.ts                   # 应用入口
+├── app/                      # 根布局
+├── domain/                   # 纯数据、类型、几何与地形
+├── game/                     # 游戏逻辑与规则计算
+├── stores/                   # Pinia 状态管理
+├── rendering/                # Canvas 渲染层
+├── components/               # Vue 组件层
+├── styles/                   # 全局样式与主题
+└── utils/                    # 通用工具函数
 ```
+
+---
+
+## 4. 模块职责说明
+
+| 模块 | 职责 | 是否依赖 Vue/Pinia |
+| --- | --- | --- |
+| `domain/` | 类型定义、单位模板、武器推导、几何计算、地形数据 | 否 |
+| `game/` | 移动、战斗、路径编辑、时间轴、战术可读性计算 | 否 |
+| `stores/` | Pinia 状态、执行控制、回放、会话管理 | 是 |
+| `rendering/` | Canvas 绘制，不持有业务状态 | 否 |
+| `components/` | Vue UI 与用户交互 | 是 |
+| `styles/` | 主题、布局、控制条、地图、右侧面板样式 | 否 |
+| `utils/` | 通用工具函数 | 否 |
+
+---
+
+## 5. 关键文件职责
+
+### 5.1 根目录
+
+| 文件 | 职责 |
+| --- | --- |
+| `index.html` | HTML 入口，挂载 `#app` 并引入 `/src/main.ts` |
+| `package.json` | 项目元信息、依赖声明与 npm scripts |
+| `tsconfig.json` | TypeScript 编译配置 |
+| `vite.config.ts` | Vite 构建配置，包含 Vue 插件与 `@/` 别名 |
+| `env.d.ts` | Vite / Vue SFC 类型声明 |
+| `file-tree.md` | 项目文件树与模块说明文档 |
+
+### 5.2 electron/
+
+| 文件 | 职责 |
+| --- | --- |
+| `electron/main.cjs` | Electron 主进程，创建 `BrowserWindow`，处理 dev/prod 模式 |
+| `electron/run.cjs` | Electron 启动包装，清除 `ELECTRON_RUN_AS_NODE` 环境变量 |
+
+### 5.3 src/domain/
+
+| 文件 | 职责 |
+| --- | --- |
+| `types.ts` | 全部核心 TypeScript 类型：`RuntimeUnit`、`WeaponProfile`、`CombatProfile` 等 |
+| `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
+| `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
+| `weapon.ts` | 武器物理推导：精度、有效射程、射击间隔、致命性 |
+| `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
+| `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形 |
+
+### 5.4 src/game/
+
+| 文件 | 职责 |
+| --- | --- |
+| `movement.ts` | 沿路径推进单位，更新位置与朝向 |
+| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正 |
+| `path-editing.ts` | 路径编辑流程：开始、扩展、平滑、确认、撤销、重做 |
+| `timeline.ts` | 时间轴管理：快照克隆、恢复、提交、基线持久化 |
+| `readability.ts` | 战术可读性计算：扇区、角度、距离、命中估算 |
+
+### 5.5 src/stores/
+
+| 文件 | 职责 |
+| --- | --- |
+| `gameStore.ts` | 核心 Pinia Store，声明状态并组装各逻辑模块 |
+| `derived.ts` | 派生状态：`readabilityHints`、`renderSnapshot`、`unitFields` |
+| `execution.ts` | 执行控制：`tick`、`runSimulationTick`、播放 / 暂停 / 继续 |
+| `session.ts` | 会话管理：初始化游戏、按坐标选择规划单位 |
+| `playback.ts` | 回放控制：后退、前进、时间轴跳转 |
+
+### 5.6 src/rendering/
+
+| 文件 | 职责 |
+| --- | --- |
+| `tacticalCanvasRenderer.ts` | Canvas 渲染协调器，按顺序调用各子渲染函数 |
+| `drawTerrain.ts` | 绘制地图底色、网格、比例尺、掩体、灌木 |
+| `drawSectors.ts` | 绘制三层单位场：感知场、火力场、控制场 |
+| `drawPathsShots.ts` | 绘制规划路径、路径箭头与交火可读性连线 |
+| `drawUnits.ts` | 绘制单位、血条、方向指示器、高亮光环和弹道轨迹 |
+
+### 5.7 src/components/
+
+| 文件 | 职责 |
+| --- | --- |
+| `TacticalMapCanvas.vue` | Canvas 交互组件，负责绑定鼠标、触摸与渲染循环 |
+| `GameToolbar.vue` | 底部播放控制栏：播放、暂停、步进、撤销、重做、时间轴、重置 |
+| `BattleLogPanel.vue` | 右侧面板，包含战斗日志与单位档案 Tab |
+| `UnitEditor.vue` | 单位参数调试器，编辑三状态、六力与武器参数 |
+
+### 5.8 src/components/canvas/
+
+| 文件 | 职责 |
+| --- | --- |
+| `useCanvasInput.ts` | 鼠标输入处理：坐标转换、按下、移动、抬起、右键、双击 |
+| `useCanvasTouch.ts` | 触摸输入处理：拖动、结束、双击检测 |
+| `useAnimationLoop.ts` | `requestAnimationFrame` 循环，负责 tick 与渲染调用 |
+
+### 5.9 src/styles/
+
+| 文件 | 职责 |
+| --- | --- |
+| `theme.css` | CSS 变量与浅色竹简 / 羊皮纸主题 |
+| `layout.css` | 全局布局、标题区、主战术布局 |
+| `controls.css` | 底部播放控制栏、按钮、滑条、禁用状态 |
+| `battlefield.css` | Canvas 地图与右键菜单样式 |
+| `log-panel.css` | 右侧面板、Tab、日志、单位档案相关样式 |
+
+### 5.10 src/utils/
+
+| 文件 | 职责 |
+| --- | --- |
+| `timeFormat.ts` | 时间格式化工具 |
+
+---
+
+## 6. 模块依赖方向
+
+```text
 domain/  ←  game/  ←  stores/  ←  components/
                     ←  rendering/
 ```
 
-- `domain/` 无框架依赖，纯数据和几何
-- `game/` 依赖 `domain/`，采用 composable 模式导出 `create*Actions(deps)` 函数
-- `stores/` 依赖 `domain/` + `game/`，Pinia store 声明 state 并组装 composable
-- `rendering/` 依赖 `domain/` + `game/`（仅类型），纯函数，接收只读快照
-- `components/` 依赖 `stores/` + `rendering/`，通过 Pinia `useGameStore()` 通信
-- 无循环依赖
+依赖约束：
 
-## 规范遵守情况
+1. `domain/` 不依赖任何上层模块。
+2. `game/` 可以依赖 `domain/`，但不能依赖 Vue、Pinia 或组件。
+3. `stores/` 可以依赖 `domain/` 与 `game/`。
+4. `rendering/` 只接收只读快照，不直接修改 Store。
+5. `components/` 通过 Pinia 与渲染函数通信。
+6. 禁止循环依赖。
+7. 禁止在 Vue 组件中直接写复杂战斗规则。
 
-| 规则 | 状态 |
-|------|------|
-| 单文件 ≤100 行有效代码 | ✓ 全部通过（最大 96 行 store，95 行 path-editing） |
-| 单一职责原则（SRP） | ✓ 每个文件只负责一个明确功能 |
-| 每文件夹 ≤5 个脚本文件 | ✓ domain(5), game(5), stores(5), rendering(5), styles(4), components(3+子3) |
-| 模块边界清晰，无循环依赖 | ✓ |
+---
+
+## 7. 当前架构原则
+
+### 7.1 分层原则
+
+```text
+数据定义 → 规则计算 → 状态管理 → 渲染/UI
+```
+
+| 层级 | 说明 |
+| --- | --- |
+| 数据定义 | 类型、常量、地形、武器、单位基础资料 |
+| 规则计算 | 移动、战斗、路径、时间轴、可读性 |
+| 状态管理 | 当前局势、播放状态、路径规划、日志、回放 |
+| 渲染 / UI | Canvas 绘制、按钮、面板、输入组件 |
+
+### 7.2 当前不做的内容
+
+当前原型暂不开发：
+
+- 训练模板系统；
+- 部队层次树；
+- 1d10 伤势系统；
+- 士气崩溃；
+- AI 行为标签；
+- 控制场流体系统；
+- C# / 孙子引擎正式版迁移；
+- 持久化存档；
+- 联机系统。
+
+---
+
+## 8. 版本历史
+
+| 版本 | 日期 | 类型 | 说明 |
+| --- | --- | --- | --- |
+| `v0.2.2` | 2026-05-09 | 渲染 | 扇区语义拆分：感知场 (110°/700m)、火力场 (60°/effectiveRange)、控制场 (80°/≤250m) |
+| `v0.2.1` | 2026-05-09 | UI | 浅色竹简 / 羊皮纸风格 UI，单位档案卡视觉改版，播放条图标替换，战斗日志事件标签化 |
+| `v0.2.0` | 2026-05-09 | 功能 | 新增 `WeaponProfile` / `CombatProfile` 类型与单位参数调试器 |
+| `v0.1.x` | — | 原型 | 基础 1v1 战术推演沙盒：HP 制战斗、路径规划、时间轴回放 |
+
+---
+
+## 9. 后续版本计划
+
+| 版本 | 目标 |
+| --- | --- |
+| `v0.3.0` | 让 `WeaponProfile` / `CombatProfile` 影响命中率与射击间隔 |
+| `v0.4.0` | 替换 HP 系统，引入 1d10 伤势判定 |
+| `v0.5.0` | 初步接入三状态对战斗表现的影响 |
+| `v0.6.0` | 单兵到班级的聚合验证 |
+
+---
+
+## 10. 文档维护规范
+
+每次修改代码后，必须检查是否需要更新本文档。
+
+### 10.1 必须更新的情况
+
+- 新增文件；
+- 删除文件；
+- 重命名文件；
+- 移动目录；
+- 文件职责发生明显变化；
+- 新增模块；
+- 架构依赖方向变化；
+- 新增版本 tag；
+- 新增长期计划或取消原计划。
+
+### 10.2 不必更新的情况
+
+- 只修改函数内部实现；
+- 只调整 CSS 细节；
+- 只修复 bug；
+- 只修改文案；
+- 不改变文件职责的小范围重构。
+
+### 10.3 AI 修改代码后的检查清单
+
+每次提交代码后，检查：
+
+```text
+[ ] 是否新增 / 删除 / 重命名文件？
+[ ] 是否改变现有文件职责？
+[ ] 是否引入新的模块目录？
+[ ] 是否破坏模块依赖方向？
+[ ] 是否需要更新版本历史？
+[ ] 是否需要更新后续版本计划？
+```
+
+如答案为"是"，必须同步修改 `file-tree.md`。
+
+---
+
+## 11. 备注
+
+本文档只描述项目结构和模块职责，不记录具体算法细节。
+
+具体设计文档应拆分到独立文件，例如：
+
+```text
+docs/
+├── six-forces-design.md
+├── combat-resolution.md
+├── control-field-design.md
+├── training-system-parking-lot.md
+└── ui-style-guide.md
+```

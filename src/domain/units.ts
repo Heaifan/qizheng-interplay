@@ -6,16 +6,16 @@ export const UNIT_TEMPLATES: readonly UnitTemplate[] = [
     type: 'circle',
     startX: 150,
     startY: 300,
-    color: '#81d4fa',
-    stroke: '#0288d1',
+    color: '#8FC6E0',
+    stroke: '#4A7EA8',
   },
   {
     id: '红方',
     type: 'diamond',
     startX: 650,
     startY: 300,
-    color: '#ef9a9a',
-    stroke: '#d32f2f',
+    color: '#E2A099',
+    stroke: '#B85A4D',
   },
 ] as const;
 
