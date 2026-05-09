@@ -19,11 +19,27 @@ export function drawShots(
   }
 }
 
-export function drawUnits(ctx: CanvasRenderingContext2D, units: readonly RuntimeUnit[]): void {
+export function drawUnits(
+  ctx: CanvasRenderingContext2D,
+  units: readonly RuntimeUnit[],
+  highlightedUnitId: string | null = null,
+): void {
   for (const u of units) {
     ctx.save();
     ctx.translate(u.x, u.y);
     if (u.dead) ctx.globalAlpha = 0.3;
+
+    const isHighlighted = highlightedUnitId === u.id;
+
+    if (isHighlighted) {
+      ctx.beginPath();
+      ctx.arc(0, 0, 28, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255, 183, 77, 0.25)';
+      ctx.fill();
+      ctx.strokeStyle = '#ffb74d';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
 
     if (!u.dead) {
       ctx.fillStyle = '#b71c1c';

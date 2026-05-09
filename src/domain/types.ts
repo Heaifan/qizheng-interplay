@@ -1,7 +1,37 @@
-/** 游戏阶段：规划 / 执行 / 结束 */
 export type GameMode = 'idle' | 'planBlue' | 'planRed' | 'executing' | 'gameover';
 
 export type UnitShape = 'circle' | 'diamond';
+
+export type WeaponAction = 'bolt' | 'semi' | 'auto';
+
+export interface WeaponProfile {
+  id: string;
+  name: string;
+  caliber: number;
+  action: WeaponAction;
+  barrelLength: number;
+  sightMag: number;
+}
+
+export interface WeaponDerivedStats {
+  accuracy: number;
+  effectiveRange: number;
+  fireIntervalMs: number;
+  lethality: number;
+  actionRPM: number;
+}
+
+export type WoundState = 'healthy' | 'light' | 'heavy' | 'incapacitated';
+
+export interface CombatProfile {
+  id: string;
+  name: string;
+  faction: 'blue' | 'red';
+  states: { stamina: number; morale: number; focus: number };
+  forces: { strike: number; survival: number; mobility: number; perception: number; control: number; sustainment: number };
+  weapon: WeaponProfile;
+  woundState: WoundState;
+}
 
 export interface Point {
   x: number;
@@ -44,6 +74,7 @@ export interface RuntimeUnit extends UnitTemplate {
   /** Fire-control direction used by ZOC sector */
   fireAngle: number;
   lastFireTime: number;
+  combatProfile: CombatProfile;
 }
 
 export interface ShotTrail {

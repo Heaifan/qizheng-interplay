@@ -24,6 +24,8 @@ export const useGameStore = defineStore('game', () => {
   const timelineIndex = ref(0);
   const simElapsedMs = ref(0);
   const toolbarHighlight = ref<'blue' | 'red' | 'exec' | null>(null);
+  const highlightedUnitId = ref<string | null>(null);
+  const uiPanelTab = ref<'log' | 'editor'>('log');
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
@@ -62,7 +64,7 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId });
 
   const canStepBack = computed(() => timelineIndex.value > 0);
   const canStepForward = computed(() =>
@@ -81,6 +83,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     mode, executionState, units, shots, logs, toolbarHighlight,
+    highlightedUnitId, uiPanelTab,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,
     playbackMin, playbackMax, timelineIndex,

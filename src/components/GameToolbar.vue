@@ -8,11 +8,16 @@ const {
   canStepBack, canStepForward,
   canUndoPathEdit, canRedoPathEdit,
   playbackMin, playbackMax, timelineIndex,
+  uiPanelTab,
 } = storeToRefs(game);
 
 function onPlay() {
-  if (mode.value !== 'executing') game.startExecution();
-  else game.resumeExecution();
+  if (mode.value !== 'executing') {
+    uiPanelTab.value = 'log';
+    game.startExecution();
+  } else {
+    game.resumeExecution();
+  }
 }
 
 function onPause() {

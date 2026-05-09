@@ -1,4 +1,4 @@
-import type { ComputedRef, Ref } from 'vue';
+import type { Ref } from 'vue';
 import { computed } from 'vue';
 import { BUSHES, COVERS } from '@/domain/terrain';
 import type { GameMode, RuntimeUnit, ShotTrail } from '@/domain/types';
@@ -12,6 +12,7 @@ export interface DerivedDeps {
   units: Ref<RuntimeUnit[]>;
   shots: Ref<ShotTrail[]>;
   mode: Ref<GameMode>;
+  highlightedUnitId: Ref<string | null>;
 }
 
 export function createDerivedState(d: DerivedDeps) {
@@ -32,6 +33,7 @@ export function createDerivedState(d: DerivedDeps) {
     mode: d.mode.value,
     showPlannedPath: d.mode.value !== 'gameover',
     showPathArrow: true,
+    highlightedUnitId: d.highlightedUnitId.value,
   }));
 
   return { readabilityHints, renderSnapshot };

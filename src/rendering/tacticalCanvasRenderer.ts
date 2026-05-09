@@ -16,6 +16,7 @@ export interface TacticalRenderSnapshot {
   mode: string;
   showPlannedPath: boolean;
   showPathArrow: boolean;
+  highlightedUnitId: string | null;
 }
 
 export function renderTacticalScene(
@@ -48,5 +49,5 @@ export function renderTacticalScene(
   }
 
   drawShots(ctx, snap.shots);
-  drawUnits(ctx, snap.units);
+  drawUnits(ctx, snap.units, snap.highlightedUnitId);
 }
