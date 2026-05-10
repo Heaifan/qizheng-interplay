@@ -16,6 +16,8 @@ const PERCEPTION_HALF_ANGLE = (110 * Math.PI) / 360;
 const FIRE_HALF_ANGLE = (60 * Math.PI) / 360;
 const CONTROL_HALF_ANGLE = (80 * Math.PI) / 360;
 
+const FIRE_VISUAL_MAX = 380;
+
 function computeUnitFields(units: readonly RuntimeUnit[]) {
   return units.map((u) => {
     const ws = deriveWeaponStats(u.combatProfile.weapon);
@@ -24,12 +26,12 @@ function computeUnitFields(units: readonly RuntimeUnit[]) {
       unitId: u.id,
       x: u.x,
       y: u.y,
-      angle: u.fireAngle,
+      angle: u.angle,
       perceptionRange: 500 + pf * 3,
       perceptionHalfAngle: PERCEPTION_HALF_ANGLE,
-      fireRange: ws.effectiveRange,
+      fireRange: Math.min(ws.effectiveRange, FIRE_VISUAL_MAX),
       fireHalfAngle: FIRE_HALF_ANGLE,
-      controlRange: Math.min(ws.effectiveRange * 0.25, 200),
+      controlRange: Math.min(ws.effectiveRange * 0.18, 150),
       controlHalfAngle: CONTROL_HALF_ANGLE,
       strokeColor: u.stroke,
     };

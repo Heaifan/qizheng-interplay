@@ -50,6 +50,13 @@ export function drawFireField(
     ctx.closePath();
     ctx.fillStyle = `${base} 0.14)`;
     ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(f.x, f.y);
+    ctx.arc(f.x, f.y, f.fireRange, s, eF);
+    ctx.closePath();
+    ctx.strokeStyle = `${base} 0.28)`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
   }
 }
 
@@ -88,9 +95,9 @@ export function drawControlField(
     ctx.moveTo(f.x, f.y);
     ctx.arc(f.x, f.y, f.controlRange, s, eC);
     ctx.closePath();
-    ctx.strokeStyle = `${base} 0.38)`;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
+    ctx.strokeStyle = `${base} 0.55)`;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 5]);
     ctx.stroke();
     ctx.setLineDash([]);
   }

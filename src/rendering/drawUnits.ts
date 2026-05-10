@@ -69,7 +69,7 @@ export function drawUnits(
       ctx.stroke();
     }
 
-    ctx.rotate(u.fireAngle);
+    ctx.rotate(u.angle);
     ctx.beginPath();
     ctx.moveTo(-8, 0);
     ctx.lineTo(12, 0);

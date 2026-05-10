@@ -7,6 +7,27 @@ export const FIRE_COOLDOWN_MS = 550;
 export const MAX_RANGE = 900;
 export const BASE_HIT_CHANCE = 0.75;
 
+const FIRE_ARC_DEG = 60;
+export const FIRE_ARC_HALF_RAD = (FIRE_ARC_DEG * Math.PI) / 360;
+
+function normalizeAngle(a: number): number {
+  let v = a;
+  while (v > Math.PI) v -= Math.PI * 2;
+  while (v < -Math.PI) v += Math.PI * 2;
+  return v;
+}
+
+function getAngleDiff(a: number, b: number): number {
+  return Math.abs(normalizeAngle(a - b));
+}
+
+function isTargetInFireArc(attacker: RuntimeUnit, target: RuntimeUnit): boolean {
+  const dx = target.x - attacker.x;
+  const dy = target.y - attacker.y;
+  const targetBearing = Math.atan2(dy, dx);
+  return getAngleDiff(targetBearing, attacker.angle) <= FIRE_ARC_HALF_RAD;
+}
+
 export function missionTimeLabel(elapsedMs: number): string {
   const sec = Math.max(0, Math.floor(elapsedMs / 1000));
   return `T+${sec}s`;
@@ -27,11 +48,12 @@ export function createCombatActions(d: CombatDeps) {
     if (attacker.dead || target.dead) return;
     const dx = target.x - attacker.x;
     const dy = target.y - attacker.y;
-    attacker.fireAngle = Math.atan2(dy, dx);
     const distance = Math.hypot(dx, dy);
     if (distance > MAX_RANGE) return;
+    if (!isTargetInFireArc(attacker, target)) return;
     if (now - attacker.lastFireTime < FIRE_COOLDOWN_MS) return;
 
+    attacker.fireAngle = Math.atan2(dy, dx);
     attacker.lastFireTime = now;
 
     const blocked = segmentBlockedByAnyCover(
