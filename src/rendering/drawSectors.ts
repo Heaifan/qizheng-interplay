@@ -77,6 +77,24 @@ export function drawFireFieldWeak(
   }
 }
 
+/** 从单位中心沿 fireRange 方向画一条中心线，用于肉眼验证图标箭头与扇区中心是否一致 */
+export function drawSectorCenterLines(
+  ctx: CanvasRenderingContext2D,
+  fields: ReadonlyArray<UnitFieldData>,
+): void {
+  for (const f of fields) {
+    const base = isBlue(f.strokeColor) ? BLUE_FILL : RED_FILL;
+    const ex = f.x + Math.cos(f.angle) * f.fireRange;
+    const ey = f.y + Math.sin(f.angle) * f.fireRange;
+    ctx.beginPath();
+    ctx.moveTo(f.x, f.y);
+    ctx.lineTo(ex, ey);
+    ctx.strokeStyle = `${base} 0.45)`;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+  }
+}
+
 export function drawControlField(
   ctx: CanvasRenderingContext2D,
   fields: ReadonlyArray<UnitFieldData>,

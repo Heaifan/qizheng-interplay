@@ -1,6 +1,7 @@
 import type { Ref } from 'vue';
 import { BUSHES, COVERS } from '@/domain/terrain';
 import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
+import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_COOLDOWN_MS = 550;
@@ -9,24 +10,6 @@ export const BASE_HIT_CHANCE = 0.75;
 
 const FIRE_ARC_DEG = 60;
 export const FIRE_ARC_HALF_RAD = (FIRE_ARC_DEG * Math.PI) / 360;
-
-function normalizeAngle(a: number): number {
-  let v = a;
-  while (v > Math.PI) v -= Math.PI * 2;
-  while (v < -Math.PI) v += Math.PI * 2;
-  return v;
-}
-
-function getAngleDiff(a: number, b: number): number {
-  return Math.abs(normalizeAngle(a - b));
-}
-
-function isTargetInFireArc(attacker: RuntimeUnit, target: RuntimeUnit): boolean {
-  const dx = target.x - attacker.x;
-  const dy = target.y - attacker.y;
-  const targetBearing = Math.atan2(dy, dx);
-  return getAngleDiff(targetBearing, attacker.angle) <= FIRE_ARC_HALF_RAD;
-}
 
 export function missionTimeLabel(elapsedMs: number): string {
   const sec = Math.max(0, Math.floor(elapsedMs / 1000));
@@ -50,10 +33,15 @@ export function createCombatActions(d: CombatDeps) {
     const dy = target.y - attacker.y;
     const distance = Math.hypot(dx, dy);
     if (distance > MAX_RANGE) return;
-    if (!isTargetInFireArc(attacker, target)) return;
+
+    const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
+    const angleOffRad = angleDiffRad(targetBearing, attacker.angle);
+    if (angleOffRad > FIRE_ARC_HALF_RAD) return;
     if (now - attacker.lastFireTime < FIRE_COOLDOWN_MS) return;
 
-    attacker.fireAngle = Math.atan2(dy, dx);
+    // sync tactical facing to actual shot direction
+    attacker.angle = targetBearing;
+    attacker.fireAngle = targetBearing;
     attacker.lastFireTime = now;
 
     const blocked = segmentBlockedByAnyCover(
@@ -64,8 +52,9 @@ export function createCombatActions(d: CombatDeps) {
     );
 
     let hitChance = BASE_HIT_CHANCE;
-    if (blocked) hitChance *= 0.25;
-    if (throughBush) hitChance *= 0.6;
+    const mods: string[] = [];
+    if (blocked) { hitChance *= 0.25; mods.push('遮挡'); }
+    if (throughBush) { hitChance *= 0.6; mods.push('灌木'); }
 
     const hit = Math.random() < hitChance;
     d.shots.value.push({
@@ -73,6 +62,8 @@ export function createCombatActions(d: CombatDeps) {
       x2: target.x, y2: target.y,
       color: attacker.stroke, alpha: 1, blocked,
     });
+
+    const logBase = `开火｜距 ${distance.toFixed(0)}m｜夹角 ${radToDeg(angleOffRad).toFixed(0)}°｜命中率 ${(hitChance * 100).toFixed(0)}%${mods.length ? `｜${mods.join('/')}` : ''}`;
 
     if (hit) {
       const damage = 16 + Math.floor(Math.random() * 15);
@@ -83,10 +74,10 @@ export function createCombatActions(d: CombatDeps) {
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        d.addLog(attacker.id, `→ ${target.id}：造成 ${damage} 伤害`, 'log-hit');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜命中，造成 ${damage} 伤害`, 'log-hit');
       }
     } else {
-      d.addLog(attacker.id, `→ ${target.id}：未命中`, 'log-miss');
+      d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中`, 'log-miss');
     }
   }
 

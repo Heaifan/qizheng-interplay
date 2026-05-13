@@ -9,17 +9,17 @@ export function drawReadabilityLines(
     ctx.moveTo(hint.attackerX, hint.attackerY);
     ctx.lineTo(hint.targetX, hint.targetY);
     if (hint.inFireArc) {
-      ctx.globalAlpha = 0.35;
+      ctx.globalAlpha = 0.20;
       ctx.strokeStyle = hint.color;
-      ctx.lineWidth = 1.5;
-    } else if (hint.inPerception) {
-      ctx.globalAlpha = 0.14;
-      ctx.strokeStyle = '#90a4ae';
       ctx.lineWidth = 1;
-    } else {
-      ctx.globalAlpha = 0.08;
+    } else if (hint.inPerception) {
+      ctx.globalAlpha = 0.10;
       ctx.strokeStyle = '#b0a89a';
       ctx.lineWidth = 0.8;
+    } else {
+      ctx.globalAlpha = 0.06;
+      ctx.strokeStyle = '#c8be9e';
+      ctx.lineWidth = 0.6;
     }
     if (hint.blocked) ctx.setLineDash([8, 6]);
     ctx.stroke();

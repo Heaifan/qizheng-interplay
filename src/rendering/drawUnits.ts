@@ -10,8 +10,8 @@ export function drawShots(
     ctx.moveTo(s.x1, s.y1);
     ctx.lineTo(s.x2, s.y2);
     ctx.strokeStyle = s.color;
-    ctx.globalAlpha = s.alpha;
-    ctx.lineWidth = 2;
+    ctx.globalAlpha = Math.max(s.alpha, 0.35);
+    ctx.lineWidth = 2.5;
     if (s.blocked) ctx.setLineDash([10, 10]);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -71,13 +71,13 @@ export function drawUnits(
 
     ctx.rotate(u.angle);
     ctx.beginPath();
-    ctx.moveTo(-8, 0);
-    ctx.lineTo(12, 0);
-    ctx.lineTo(6, -6);
-    ctx.moveTo(12, 0);
-    ctx.lineTo(6, 6);
+    ctx.moveTo(-6, 0);
+    ctx.lineTo(14, 0);
+    ctx.lineTo(7, -7);
+    ctx.moveTo(14, 0);
+    ctx.lineTo(7, 7);
     ctx.strokeStyle = '#2F2A22';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.5;
     ctx.stroke();
     ctx.restore();
   }

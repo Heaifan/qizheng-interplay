@@ -1,19 +1,12 @@
-import { PX_PER_METER } from '@/domain/constants';
-import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
 import { BUSHES, COVERS } from '@/domain/terrain';
+import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
+import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
 import type { RuntimeUnit } from '@/domain/types';
 import { BASE_HIT_CHANCE, FIRE_ARC_HALF_RAD, MAX_RANGE } from './combat';
 
 const VISION_ANGLE_DEG = 110;
 const VISION_RANGE = 700;
 const HALF_VISION_RAD = (VISION_ANGLE_DEG * Math.PI) / 360;
-
-function normalizeAngle(v: number): number {
-  let a = v;
-  while (a > Math.PI) a -= Math.PI * 2;
-  while (a < -Math.PI) a += Math.PI * 2;
-  return a;
-}
 
 export interface ReadabilityHint {
   attackerId: string;
@@ -26,6 +19,9 @@ export interface ReadabilityHint {
   blocked: boolean;
   throughBush: boolean;
   angleOffsetDeg: number;
+  targetBearing: number;
+  attackerFacing: number;
+  fireArcHalfDeg: number;
   inFireArc: boolean;
   inPerception: boolean;
   hitChance: number;
@@ -49,8 +45,8 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
     const distance = Math.hypot(dx, dy);
     const blocked = segmentBlockedByAnyCover(attacker.x, attacker.y, target.x, target.y, COVERS);
     const throughBush = segmentNearAnyBush(attacker.x, attacker.y, target.x, target.y, BUSHES);
-    const targetBearing = Math.atan2(dy, dx);
-    const angleOffset = Math.abs(normalizeAngle(targetBearing - attacker.angle));
+    const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
+    const angleOffset = angleDiffRad(targetBearing, attacker.angle);
     const inFireArc = angleOffset <= FIRE_ARC_HALF_RAD;
     const inPerception = angleOffset <= HALF_VISION_RAD && distance <= VISION_RANGE;
     const angleFactor = inFireArc
@@ -73,7 +69,10 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
       distance,
       blocked,
       throughBush,
-      angleOffsetDeg: (angleOffset * 180) / Math.PI,
+      angleOffsetDeg: radToDeg(angleOffset),
+      targetBearing,
+      attackerFacing: attacker.angle,
+      fireArcHalfDeg: radToDeg(FIRE_ARC_HALF_RAD),
       inFireArc,
       inPerception,
       hitChance,

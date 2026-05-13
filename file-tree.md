@@ -102,6 +102,7 @@ src/
 | `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
 | `weapon.ts` | 武器物理推导：精度、有效射程、射击间隔、致命性 |
+| `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
 | `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
 | `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形 |
 
@@ -224,6 +225,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.2.3` | 2026-05-10 | 修复 | 方向系统统一：共享角度工具 + 开火时同步 `angle` + 扇区中心线 + 日志强化 |
 | `v0.2.2` | 2026-05-09 | 渲染 | 扇区语义拆分：感知场 (110°/700m)、火力场 (60°/effectiveRange)、控制场 (80°/≤250m) |
 | `v0.2.1` | 2026-05-09 | UI | 浅色竹简 / 羊皮纸风格 UI，单位档案卡视觉改版，播放条图标替换，战斗日志事件标签化 |
 | `v0.2.0` | 2026-05-09 | 功能 | 新增 `WeaponProfile` / `CombatProfile` 类型与单位参数调试器 |

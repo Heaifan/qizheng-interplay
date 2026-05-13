@@ -7,6 +7,7 @@ import {
   drawFireField,
   drawFireFieldWeak,
   drawControlField,
+  drawSectorCenterLines,
   type UnitFieldData,
 } from './drawSectors';
 import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
@@ -64,6 +65,7 @@ export function renderTacticalScene(
     }
   }
 
+  drawSectorCenterLines(ctx, snap.unitFields);
   drawReadabilityLines(ctx, snap.readabilityHints);
   drawShots(ctx, snap.shots);
   drawUnits(ctx, snap.units, snap.highlightedUnitId);

@@ -26,7 +26,7 @@ function computeUnitFields(units: readonly RuntimeUnit[]) {
       unitId: u.id,
       x: u.x,
       y: u.y,
-      angle: u.angle,
+      angle: u.angle, // tactical facing: icon arrow, perception, fire, control sectors
       perceptionRange: 500 + pf * 3,
       perceptionHalfAngle: PERCEPTION_HALF_ANGLE,
       fireRange: Math.min(ws.effectiveRange, FIRE_VISUAL_MAX),
