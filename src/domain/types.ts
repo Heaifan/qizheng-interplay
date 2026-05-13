@@ -69,9 +69,9 @@ export interface RuntimeUnit extends UnitTemplate {
   dead: boolean;
   path: Point[];
   currentPathIdx: number;
-  /** Movement-facing direction */
+  /** Tactical facing direction: icon arrow, perception/fire/control sector center */
   angle: number;
-  /** Fire-control direction used by ZOC sector */
+  /** Last actual shot direction, used for debug/trail reference only */
   fireAngle: number;
   lastFireTime: number;
   combatProfile: CombatProfile;

@@ -9,7 +9,6 @@ export function advanceUnitAlongPath(unit: RuntimeUnit, speed: number = UNIT_MOV
   const dx = target.x - unit.x;
   const dy = target.y - unit.y;
   const dist = Math.hypot(dx, dy);
-  if (dist > 0.0001) unit.angle = Math.atan2(dy, dx);
   if (dist < speed) {
     unit.x = target.x;
     unit.y = target.y;

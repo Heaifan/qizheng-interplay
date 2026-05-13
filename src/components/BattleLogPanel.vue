@@ -112,6 +112,7 @@ function entryRowClass(tone: string): string {
   flex: 1;
   padding: 10px 0;
   border: none;
+  outline: none;
   background: transparent;
   color: var(--text-dim);
   font-size: 14px;
@@ -123,8 +124,15 @@ function entryRowClass(tone: string): string {
 
 .tab-btn.active {
   color: var(--text-main);
+  font-weight: 800;
   border-bottom: 2px solid var(--accent);
   background: rgba(184, 138, 46, 0.08);
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid rgba(184, 138, 46, 0.40);
+  outline-offset: -3px;
+  border-radius: 4px;
 }
 
 .tab-btn:hover:not(.active) {

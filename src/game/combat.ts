@@ -42,6 +42,8 @@ export function createCombatActions(d: CombatDeps) {
     // sync tactical facing to actual shot direction
     attacker.angle = targetBearing;
     attacker.fireAngle = targetBearing;
+    const threatBearing = bearingBetween(target.x, target.y, attacker.x, attacker.y);
+    target.angle = threatBearing;
     attacker.lastFireTime = now;
 
     const blocked = segmentBlockedByAnyCover(

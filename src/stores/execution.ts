@@ -2,6 +2,7 @@ import type { Ref } from 'vue';
 import { SHOT_ALPHA_DECAY } from '@/domain/constants';
 import type { GameMode, LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { advanceUnitAlongPath } from '@/game/movement';
+import { updateTacticalFacing } from '@/game/facing';
 
 const SIM_STEP_MS = 1000 / 60;
 
@@ -31,6 +32,7 @@ export function createExecutionActions(d: ExecutionDeps) {
       if (s.alpha <= 0) d.shots.value.splice(i, 1);
     }
     for (const u of d.units.value) advanceUnitAlongPath(u);
+    updateTacticalFacing(d.units.value);
     const now = Date.now();
     const [blue, red] = d.units.value;
     if (blue && red && !blue.dead && !red.dead) {
