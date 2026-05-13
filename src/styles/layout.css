@@ -35,6 +35,12 @@ body {
   color: var(--text-main);
 }
 
+.tactical-header .version {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
 .tactical-header p {
   color: var(--text-muted);
   margin: 5px 0;
