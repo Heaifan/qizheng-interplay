@@ -3,6 +3,7 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import { onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { useCanvasInput } from './canvas/useCanvasInput';
 import { useAnimationLoop } from './canvas/useAnimationLoop';
+import MapToolBar from './MapToolBar.vue';
 
 const canvasRef = useTemplateRef('canvas');
 const input = useCanvasInput(canvasRef);
@@ -38,14 +39,31 @@ onUnmounted(() => {
 
 <template>
   <div class="tactical-canvas-shell">
-    <canvas
-      ref="canvas"
-      class="tactical-map"
-      :style="{ cursor: canvasCursor }"
-      :width="CANVAS_WIDTH"
-      :height="CANVAS_HEIGHT"
-      @contextmenu="onContextMenu"
-      @dblclick="onDoubleClick"
-    />
+    <div class="map-canvas-container">
+      <MapToolBar class="map-toolbar-overlay" />
+      <canvas
+        ref="canvas"
+        class="tactical-map"
+        :style="{ cursor: canvasCursor }"
+        :width="CANVAS_WIDTH"
+        :height="CANVAS_HEIGHT"
+        @contextmenu="onContextMenu"
+        @dblclick="onDoubleClick"
+      />
+    </div>
   </div>
 </template>
+
+<style scoped>
+.map-canvas-container {
+  position: relative;
+  display: inline-block;
+}
+
+.map-toolbar-overlay {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  z-index: 5;
+}
+</style>

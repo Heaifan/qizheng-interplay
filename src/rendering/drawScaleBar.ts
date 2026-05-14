@@ -11,45 +11,48 @@ export function drawScaleBar(
   const pixels = scaleMeters * cam.zoom;
   const padX = 12;
   const padY = 10;
-  const barH = 22;
   const label = scaleMeters >= 1000
     ? `${scaleMeters / 1000}km / 格`
     : `${scaleMeters}m / 格`;
-  const labelWidth = ctx.measureText(label).width;
-  const totalW = Math.max(pixels + padX * 2, labelWidth + 20);
-  const barX = padX;
-  const barY = ch - padY - barH;
+
+  ctx.font = '12px Microsoft YaHei, sans-serif';
+  const textW = ctx.measureText(label).width;
+  const barW = Math.max(pixels, textW + 16);
+  const boxH = 40;
+  const boxW = barW + padX * 2;
+  const bx = padX;
+  const by = ch - padY - boxH;
 
   // background
   ctx.fillStyle = 'rgba(242, 236, 217, 0.85)';
   ctx.strokeStyle = 'rgba(184, 138, 46, 0.40)';
   ctx.lineWidth = 1;
-  roundRect(ctx, barX - 4, barY - 2, totalW, barH + 4, 4);
+  roundRect(ctx, bx - 4, by - 2, boxW + 4, boxH + 4, 4);
   ctx.fill();
   ctx.stroke();
 
-  // bar line
+  // label (first line)
+  ctx.fillStyle = '#2F2A22';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(label, bx + barW / 2, by + 18);
+
+  // bar line (second line)
   ctx.strokeStyle = '#2F2A22';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(barX, barY + barH / 2);
-  ctx.lineTo(barX + pixels, barY + barH / 2);
+  const barY = by + 28;
+  ctx.moveTo(bx, barY);
+  ctx.lineTo(bx + pixels, barY);
   ctx.stroke();
 
   // end ticks
   ctx.beginPath();
-  ctx.moveTo(barX, barY + 4);
-  ctx.lineTo(barX, barY + barH - 4);
-  ctx.moveTo(barX + pixels, barY + 4);
-  ctx.lineTo(barX + pixels, barY + barH - 4);
+  ctx.moveTo(bx, barY - 4);
+  ctx.lineTo(bx, barY + 4);
+  ctx.moveTo(bx + pixels, barY - 4);
+  ctx.lineTo(bx + pixels, barY + 4);
   ctx.stroke();
-
-  // label
-  ctx.fillStyle = '#2F2A22';
-  ctx.font = '12px Microsoft YaHei, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(label, barX + pixels / 2, barY + barH / 2);
 }
 
 function roundRect(

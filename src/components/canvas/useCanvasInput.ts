@@ -61,8 +61,16 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     pointers.set(ev.pointerId, { sx: sp.sx, sy: sp.sy });
     clickStartPos = { sx: sp.sx, sy: sp.sy };
 
-    // Alt + left → ruler
+    // Alt+left → ruler (shortcut)
     if (ev.altKey && ev.button === 0) {
+      ev.preventDefault();
+      const wp = worldPoint(ev);
+      game.ruler = { active: true, visible: true, start: wp, end: wp };
+      return;
+    }
+
+    // measure mode: left button → ruler
+    if (game.interactionMode === 'measure' && ev.button === 0) {
       ev.preventDefault();
       const wp = worldPoint(ev);
       game.ruler = { active: true, visible: true, start: wp, end: wp };

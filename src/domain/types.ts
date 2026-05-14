@@ -107,4 +107,4 @@ export interface LogEntry {
 
 export type ToolbarHighlight = 'blue' | 'red' | 'exec' | null;
 
-export type InteractionMode = 'browse' | 'planPath';
+export type InteractionMode = 'browse' | 'measure' | 'planPath';
