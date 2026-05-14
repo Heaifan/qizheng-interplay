@@ -1,6 +1,8 @@
-import { type Ref, ref, computed, onMounted, onUnmounted } from 'vue';
+import { type Ref, ref, computed, onMounted, onUnmounted, reactive } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { screenToWorld, zoomAtScreenPoint, MIN_ZOOM, MAX_ZOOM } from '@/domain/camera';
+import type { RulerPoint } from '@/game/ruler';
+import { getDistanceMeters } from '@/game/ruler';
 
 const pointers = new Map<number, { sx: number; sy: number }>();
 let spaceHeld = false;
@@ -58,6 +60,14 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     const sp = screenPoint(ev);
     pointers.set(ev.pointerId, { sx: sp.sx, sy: sp.sy });
     clickStartPos = { sx: sp.sx, sy: sp.sy };
+
+    // Alt + left → ruler
+    if (ev.altKey && ev.button === 0) {
+      ev.preventDefault();
+      const wp = worldPoint(ev);
+      game.ruler = { active: true, visible: true, start: wp, end: wp };
+      return;
+    }
 
     // middle button → always pan
     if (ev.button === 1) {
@@ -125,6 +135,13 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       return;
     }
 
+    // ruler drag
+    if (game.ruler.active && pointers.size === 1) {
+      const wp = worldPoint(ev);
+      game.ruler.end = wp;
+      return;
+    }
+
     // drawing
     if (drawing.value) {
       game.extendPathIfFarEnough(screenToWorld(sp.sx, sp.sy, game.camera));
@@ -137,6 +154,8 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     pointers.delete(ev.pointerId);
 
     if (panStart) { endPan(); return; }
+
+    if (game.ruler.active) { game.ruler.active = false; return; }
 
     // left click without drag → select unit
     if (ev.button === 0 && clickStartPos && !isDragFar(screenPoint(ev).sx, screenPoint(ev).sy)) {
@@ -179,6 +198,12 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (ev.code === 'Space') {
       spaceHeld = true;
       ev.preventDefault();
+    }
+    if (ev.key === 'Escape') {
+      game.ruler.active = false;
+      game.ruler.visible = false;
+      game.ruler.start = null;
+      game.ruler.end = null;
     }
   }
 

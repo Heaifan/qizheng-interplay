@@ -13,6 +13,7 @@ export interface DerivedDeps {
   highlightedUnitId: Ref<string | null>;
   uiPanelTab: Ref<'log' | 'editor'>;
   camera: Ref<CameraState>;
+  ruler: Ref<import('@/game/ruler').RulerState>;
 }
 
 const PERCEPTION_HALF_ANGLE = (110 * Math.PI) / 360;
@@ -59,6 +60,7 @@ export function createDerivedState(d: DerivedDeps) {
     highlightedUnitId: d.highlightedUnitId.value,
     showSectorLabels: showSectorLabels.value,
     camera: d.camera.value,
+    ruler: d.ruler.value,
   }));
 
   return { readabilityHints, renderSnapshot };

@@ -1,6 +1,7 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import type { CameraState } from '@/domain/camera';
 import type { BushCircle, CoverRect, RuntimeUnit, ShotTrail } from '@/domain/types';
+import type { RulerState } from '@/game/ruler';
 import type { ReadabilityHint } from '@/game/readability';
 import { drawCovers, drawBushes } from './drawTerrain';
 import { drawViewportGrid } from './drawViewportGrid';
@@ -14,6 +15,7 @@ import {
 } from './drawSectors';
 import { drawSectorLabels } from './drawSectorLabels';
 import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
+import { drawRuler } from './drawRuler';
 import { drawScaleBar } from './drawScaleBar';
 import { drawUnitLabels } from './drawUnitLabels';
 import { drawShots, drawUnits } from './drawUnits';
@@ -31,6 +33,7 @@ export interface TacticalRenderSnapshot {
   highlightedUnitId: string | null;
   showSectorLabels: boolean;
   camera: CameraState;
+  ruler: RulerState;
 }
 
 export function renderTacticalScene(
@@ -89,6 +92,7 @@ export function renderTacticalScene(
   ctx.restore();
 
   // overlay — not affected by camera
+  drawRuler(ctx, snap.ruler, cam);
   drawScaleBar(ctx, cam, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawUnitLabels(ctx, snap.units, cam);
 }

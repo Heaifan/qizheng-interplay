@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import type { CameraState } from '@/domain/camera';
 import { DEFAULT_ZOOM } from '@/domain/camera';
 import type { GameMode, InteractionMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
+import type { RulerState } from '@/game/ruler';
 import { createCombatActions, missionTimeLabel } from '@/game/combat';
 import { createPathEditActions } from '@/game/path-editing';
 import { createTimelineActions, type TimelineFrame } from '@/game/timeline';
@@ -30,6 +31,7 @@ export const useGameStore = defineStore('game', () => {
   const uiPanelTab = ref<'log' | 'editor'>('log');
   const camera = ref<CameraState>({ zoom: DEFAULT_ZOOM, offsetX: 0, offsetY: 0 });
   const interactionMode = ref<InteractionMode>('browse');
+  const ruler = ref<RulerState>({ active: false, visible: false, start: null, end: null });
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
@@ -68,7 +70,7 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera, ruler });
 
   const canStepBack = computed(() => timelineIndex.value > 0);
   const canStepForward = computed(() =>
@@ -87,7 +89,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     mode, executionState, units, shots, logs, toolbarHighlight,
-    highlightedUnitId, uiPanelTab, camera, interactionMode,
+    highlightedUnitId, uiPanelTab, camera, interactionMode, ruler,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,
     playbackMin, playbackMax, timelineIndex,
