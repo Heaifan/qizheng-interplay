@@ -1,6 +1,7 @@
-import { type Ref, ref, computed, onMounted, onUnmounted } from 'vue';
+import { type Ref, ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { screenToWorld, zoomAtScreenPoint, MIN_ZOOM, MAX_ZOOM } from '@/domain/camera';
+import type { RulerPoint } from '@/game/ruler';
 
 const pointers = new Map<number, { sx: number; sy: number }>();
 let spaceHeld = false;
@@ -11,6 +12,19 @@ const DRAG_THRESHOLD = 4;
 
 export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
   const game = useGameStore();
+
+  // RAF throttling for ruler pointer updates
+  let pendingRulerEnd: RulerPoint | null = null;
+  let rulerRafId = 0;
+  function scheduleRulerEnd(point: RulerPoint) {
+    pendingRulerEnd = point;
+    if (rulerRafId) return;
+    rulerRafId = requestAnimationFrame(() => {
+      if (pendingRulerEnd) game.ruler.end = pendingRulerEnd;
+      pendingRulerEnd = null;
+      rulerRafId = 0;
+    });
+  }
   const planningArmed = ref(false);
   const drawing = ref(false);
   const canvasCursor = computed(() =>
@@ -134,10 +148,10 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       return;
     }
 
-    // ruler drag
+    // ruler drag (RAF-throttled)
     if (game.ruler.active && pointers.size === 1) {
       const wp = worldPoint(ev);
-      game.ruler.end = wp;
+      scheduleRulerEnd(wp);
       return;
     }
 
@@ -233,6 +247,14 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
   }
 
+  // Clean up planning/drawing state when switching away from planPath or browse
+  watch(() => game.interactionMode, (mode) => {
+    if (mode !== 'planPath') {
+      drawing.value = false;
+      planningArmed.value = false;
+    }
+  });
+
   onMounted(() => {
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -241,6 +263,7 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
   onUnmounted(() => {
     window.removeEventListener('keydown', onKeyDown);
     window.removeEventListener('keyup', onKeyUp);
+    if (rulerRafId) cancelAnimationFrame(rulerRafId);
   });
 
   return {

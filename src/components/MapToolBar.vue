@@ -14,12 +14,24 @@ const modes: { key: InteractionMode; label: string }[] = [
 </script>
 
 <template>
-  <div class="map-toolbar">
+  <div
+    class="map-toolbar"
+    @pointerdown.stop
+    @pointerup.stop
+    @mousedown.stop
+    @mouseup.stop
+    @click.stop
+    @dblclick.stop
+    @contextmenu.stop.prevent
+  >
     <button
       v-for="m in modes"
       :key="m.key"
+      type="button"
       :class="['tool-btn', { active: interactionMode === m.key }]"
-      @click="game.interactionMode = m.key"
+      @pointerdown.stop
+      @mousedown.stop
+      @click.stop="game.interactionMode = m.key"
     >
       {{ m.label }}
     </button>
