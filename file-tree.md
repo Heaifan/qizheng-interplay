@@ -230,6 +230,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.2.4.2.2` | 2026-05-10 | 功能 | PC/App 视图适配：Pointer Events + 中键/空格平移 + 双指缩放 + 交互模式 + 单位名称 Overlay |
 | `v0.2.4.2.1` | 2026-05-10 | 修复 | 比例尺/网格坐标统一：视口网格 `drawViewportGrid.ts`，删除旧 `drawGridAndScale`，米制统一 |
 | `v0.2.4.2` | 2026-05-10 | 功能 | 地图缩放 + 动态比例尺：`camera.ts` / `drawScaleBar.ts`，0.5x–4.0x 滚轮缩放 |
 | `v0.2.4.1` | 2026-05-10 | 重构 | 武器公式源统一：`domain/weapon.ts` 为唯一起源，`combatFormula.ts` 复用 |

@@ -15,6 +15,7 @@ import {
 import { drawSectorLabels } from './drawSectorLabels';
 import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
 import { drawScaleBar } from './drawScaleBar';
+import { drawUnitLabels } from './drawUnitLabels';
 import { drawShots, drawUnits } from './drawUnits';
 
 export interface TacticalRenderSnapshot {
@@ -89,4 +90,5 @@ export function renderTacticalScene(
 
   // overlay — not affected by camera
   drawScaleBar(ctx, cam, CANVAS_WIDTH, CANVAS_HEIGHT);
+  drawUnitLabels(ctx, snap.units, cam);
 }

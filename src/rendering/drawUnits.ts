@@ -29,12 +29,7 @@ export function drawUnits(
     ctx.translate(u.x, u.y);
     if (u.dead) ctx.globalAlpha = 0.3;
 
-    // unit name label above the icon
-    const nameLabel = u.combatProfile.name || u.id;
-    ctx.font = '11px Microsoft YaHei, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#5C554A';
-    ctx.fillText(nameLabel, 0, 34);
+    // unit name label drawn as overlay in drawUnitLabels (not affected by zoom)
 
     const isHighlighted = highlightedUnitId === u.id;
 

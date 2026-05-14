@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import type { CameraState } from '@/domain/camera';
 import { DEFAULT_ZOOM } from '@/domain/camera';
-import type { GameMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
+import type { GameMode, InteractionMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { createCombatActions, missionTimeLabel } from '@/game/combat';
 import { createPathEditActions } from '@/game/path-editing';
 import { createTimelineActions, type TimelineFrame } from '@/game/timeline';
@@ -29,6 +29,7 @@ export const useGameStore = defineStore('game', () => {
   const highlightedUnitId = ref<string | null>(null);
   const uiPanelTab = ref<'log' | 'editor'>('log');
   const camera = ref<CameraState>({ zoom: DEFAULT_ZOOM, offsetX: 0, offsetY: 0 });
+  const interactionMode = ref<InteractionMode>('browse');
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
@@ -86,7 +87,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     mode, executionState, units, shots, logs, toolbarHighlight,
-    highlightedUnitId, uiPanelTab, camera,
+    highlightedUnitId, uiPanelTab, camera, interactionMode,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,
     playbackMin, playbackMax, timelineIndex,
