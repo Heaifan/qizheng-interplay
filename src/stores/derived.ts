@@ -10,6 +10,7 @@ export interface DerivedDeps {
   shots: Ref<ShotTrail[]>;
   mode: Ref<GameMode>;
   highlightedUnitId: Ref<string | null>;
+  uiPanelTab: Ref<'log' | 'editor'>;
 }
 
 const PERCEPTION_HALF_ANGLE = (110 * Math.PI) / 360;
@@ -41,6 +42,8 @@ function computeUnitFields(units: readonly RuntimeUnit[]) {
 export function createDerivedState(d: DerivedDeps) {
   const readabilityHints = computed(() => computeReadabilityHints(d.units.value));
 
+  const showSectorLabels = computed(() => d.uiPanelTab.value === 'editor');
+
   const renderSnapshot = computed(() => ({
     covers: COVERS,
     bushes: BUSHES,
@@ -52,6 +55,7 @@ export function createDerivedState(d: DerivedDeps) {
     showPlannedPath: d.mode.value !== 'gameover',
     showPathArrow: true,
     highlightedUnitId: d.highlightedUnitId.value,
+    showSectorLabels: showSectorLabels.value,
   }));
 
   return { readabilityHints, renderSnapshot };

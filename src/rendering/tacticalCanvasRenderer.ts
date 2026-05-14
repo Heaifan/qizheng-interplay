@@ -11,6 +11,7 @@ import {
   type UnitFieldData,
 } from './drawSectors';
 import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
+import { drawSectorLabels } from './drawSectorLabels';
 import { drawShots, drawUnits } from './drawUnits';
 
 export interface TacticalRenderSnapshot {
@@ -24,6 +25,7 @@ export interface TacticalRenderSnapshot {
   showPlannedPath: boolean;
   showPathArrow: boolean;
   highlightedUnitId: string | null;
+  showSectorLabels: boolean;
 }
 
 export function renderTacticalScene(
@@ -66,6 +68,7 @@ export function renderTacticalScene(
   }
 
   drawSectorCenterLines(ctx, snap.unitFields);
+  drawSectorLabels(ctx, snap.unitFields, snap.showSectorLabels, snap.highlightedUnitId);
   drawReadabilityLines(ctx, snap.readabilityHints);
   drawShots(ctx, snap.shots);
   drawUnits(ctx, snap.units, snap.highlightedUnitId);

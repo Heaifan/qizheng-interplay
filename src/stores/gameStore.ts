@@ -64,7 +64,7 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode, highlightedUnitId });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab });
 
   const canStepBack = computed(() => timelineIndex.value > 0);
   const canStepForward = computed(() =>
