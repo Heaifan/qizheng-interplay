@@ -1,13 +1,13 @@
 import type { CameraState } from '@/domain/camera';
 
-const NICE_SCALES = [10, 25, 50, 100, 200, 500, 1000];
+const NICE_SCALES = [10, 25, 50, 100, 200, 500, 1000, 2000];
 
-/** 根据 zoom 选择最接近 100px 的漂亮比例尺值 */
 function pickScale(zoom: number): { meters: number; pixels: number } {
-  const targetMeters = 100 / zoom;
+  const targetPixels = 100;
+  const rawMeters = targetPixels / zoom;
   let best = NICE_SCALES[0]!;
   for (const s of NICE_SCALES) {
-    if (Math.abs(s - targetMeters) < Math.abs(best - targetMeters)) best = s;
+    if (Math.abs(s - rawMeters) < Math.abs(best - rawMeters)) best = s;
   }
   return { meters: best, pixels: best * zoom };
 }

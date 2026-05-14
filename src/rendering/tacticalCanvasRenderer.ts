@@ -2,7 +2,8 @@ import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
 import type { CameraState } from '@/domain/camera';
 import type { BushCircle, CoverRect, RuntimeUnit, ShotTrail } from '@/domain/types';
 import type { ReadabilityHint } from '@/game/readability';
-import { drawGridAndScale, drawCovers, drawBushes } from './drawTerrain';
+import { drawCovers, drawBushes } from './drawTerrain';
+import { drawViewportGrid } from './drawViewportGrid';
 import {
   drawPerceptionField,
   drawFireField,
@@ -44,7 +45,7 @@ export function renderTacticalScene(
   ctx.translate(cam.offsetX, cam.offsetY);
   ctx.scale(cam.zoom, cam.zoom);
 
-  drawGridAndScale(ctx);
+  drawViewportGrid(ctx, cam, CANVAS_WIDTH, CANVAS_HEIGHT);
   drawCovers(ctx, snap.covers);
   drawBushes(ctx, snap.bushes);
   const hlId = snap.highlightedUnitId;

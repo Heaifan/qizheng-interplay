@@ -134,7 +134,8 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `tacticalCanvasRenderer.ts` | Canvas 渲染协调器，按顺序调用各子渲染函数 |
-| `drawTerrain.ts` | 绘制地图底色、网格、掩体、灌木 |
+| `drawTerrain.ts` | 绘制地图底色、掩体、灌木 |
+| `drawViewportGrid.ts` | 视口网格：基于 camera 当前可见范围铺 100m 世界坐标网格 |
 | `drawScaleBar.ts` | 动态比例尺 overlay，随 zoom 显示 25m/50m/100m/200m 等 |
 | `drawSectors.ts` | 绘制三层单位场：感知场、火力场、控制场 |
 | `drawPathsShots.ts` | 绘制规划路径、路径箭头与交火可读性连线 |
@@ -229,6 +230,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.2.4.2.1` | 2026-05-10 | 修复 | 比例尺/网格坐标统一：视口网格 `drawViewportGrid.ts`，删除旧 `drawGridAndScale`，米制统一 |
 | `v0.2.4.2` | 2026-05-10 | 功能 | 地图缩放 + 动态比例尺：`camera.ts` / `drawScaleBar.ts`，0.5x–4.0x 滚轮缩放 |
 | `v0.2.4.1` | 2026-05-10 | 重构 | 武器公式源统一：`domain/weapon.ts` 为唯一起源，`combatFormula.ts` 复用 |
 | `v0.2.4` | 2026-05-10 | 功能 | 武器挂载卡片 + 直接火力公式：`combatFormula.ts`，Kar98k/M91/30 参与命中率/伤害/冷却 |
