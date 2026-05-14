@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
-import { deriveWeaponStats } from '@/game/combatFormula';
+import { deriveWeaponStats } from '@/domain/weapon';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
 
 const game = useGameStore();

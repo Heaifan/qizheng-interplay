@@ -2,15 +2,8 @@ import { clamp } from '@/domain/helpers';
 import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
 import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
 import { BUSHES, COVERS } from '@/domain/terrain';
+import { deriveWeaponStats } from '@/domain/weapon';
 import type { RuntimeUnit } from '@/domain/types';
-
-/** 武器推导结果 */
-export interface WeaponDerived {
-  weaponAccuracy: number;
-  effectiveRange: number;
-  terminalEffect: number;
-  fireTempo: number;
-}
 
 /** 直接火力上下文 — 单次射击的完整结算信息 */
 export interface DirectFireContext {
@@ -38,32 +31,6 @@ export interface DirectFireContext {
 }
 
 const FIRE_ARC_HALF_DEG = 30;
-
-const FIRE_TEMPO: Record<string, number> = {
-  bolt: 0.85,
-  semi: 1.05,
-  auto: 1.25,
-};
-
-/** 推导武器基础性能 */
-export function deriveWeaponStats(w: {
-  caliber: number;
-  action: string;
-  barrelLength: number;
-  sightMag: number;
-}): WeaponDerived {
-  const weaponAccuracy = clamp(
-    0.60 + ((w.barrelLength - 500) / 500) * 0.10 + (w.sightMag - 1) * 0.03,
-    0.45, 0.85,
-  );
-  const effectiveRange = clamp(
-    550 + (w.barrelLength - 500) * 0.45 + (w.sightMag - 1) * 80,
-    300, 1000,
-  );
-  const terminalEffect = Math.sqrt(w.caliber / 7.62);
-  const fireTempo = FIRE_TEMPO[w.action] ?? 0.85;
-  return { weaponAccuracy, effectiveRange, terminalEffect, fireTempo };
-}
 
 /** 计算一次完整的直接火力上下文 */
 export function calculateDirectFireContext(

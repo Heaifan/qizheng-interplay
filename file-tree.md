@@ -101,7 +101,8 @@ src/
 | `types.ts` | 全部核心 TypeScript 类型：`RuntimeUnit`、`WeaponProfile`、`CombatProfile` 等 |
 | `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
-| `weapon.ts` | 武器物理推导：精度、有效射程、射击间隔、致命性 |
+| `weapon.ts` | **武器基础推导唯一来源**：`weaponAccuracy` / `effectiveRange` / `terminalEffect` / `fireTempo` / `directFireContribution` |
+| `helpers.ts` | 通用工具：`clamp` |
 | `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
 | `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
 | `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形 |
@@ -111,7 +112,8 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `movement.ts` | 沿路径推进单位，更新位置与朝向 |
-| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正 |
+| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正（使用 `combatFormula.ts` 结算） |
+| `combatFormula.ts` | 直接火力战斗上下文：基于武器推导 + 单位状态 + 地形条件计算 `hitChance` / `averageDamage` / `fireCooldownMs` / `firePressure` |
 | `path-editing.ts` | 路径编辑流程：开始、扩展、平滑、确认、撤销、重做 |
 | `timeline.ts` | 时间轴管理：快照克隆、恢复、提交、基线持久化 |
 | `readability.ts` | 战术可读性计算：扇区、角度、距离、命中估算 |
@@ -225,6 +227,8 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.2.4.1` | 2026-05-10 | 重构 | 武器公式源统一：`domain/weapon.ts` 为唯一起源，`combatFormula.ts` 复用 |
+| `v0.2.4` | 2026-05-10 | 功能 | 武器挂载卡片 + 直接火力公式：`combatFormula.ts` |Kar98k/M91/30 参与命中率/伤害/冷却 |
 | `v0.2.3` | 2026-05-10 | 修复 | 方向系统统一：共享角度工具 + 开火时同步 `angle` + 扇区中心线 + 日志强化 |
 | `v0.2.2` | 2026-05-09 | 渲染 | 扇区语义拆分：感知场 (110°/700m)、火力场 (60°/effectiveRange)、控制场 (80°/≤250m) |
 | `v0.2.1` | 2026-05-09 | UI | 浅色竹简 / 羊皮纸风格 UI，单位档案卡视觉改版，播放条图标替换，战斗日志事件标签化 |
@@ -237,7 +241,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 目标 |
 | --- | --- |
-| `v0.3.0` | 让 `WeaponProfile` / `CombatProfile` 影响命中率与射击间隔 |
+| `v0.3.0` | 压制火力与压制系统原型 |
 | `v0.4.0` | 替换 HP 系统，引入 1d10 伤势判定 |
 | `v0.5.0` | 初步接入三状态对战斗表现的影响 |
 | `v0.6.0` | 单兵到班级的聚合验证 |
