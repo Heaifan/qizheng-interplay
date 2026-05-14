@@ -1,13 +1,13 @@
-import { type Ref, ref, computed, onMounted, onUnmounted, reactive } from 'vue';
+import { type Ref, ref, computed, onMounted, onUnmounted } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import { screenToWorld, zoomAtScreenPoint, MIN_ZOOM, MAX_ZOOM } from '@/domain/camera';
-import type { RulerPoint } from '@/game/ruler';
-import { getDistanceMeters } from '@/game/ruler';
 
 const pointers = new Map<number, { sx: number; sy: number }>();
 let spaceHeld = false;
 let panStart: { sx: number; sy: number; ox: number; oy: number } | null = null;
 let clickStartPos: { sx: number; sy: number } | null = null;
+
+const DRAG_THRESHOLD = 4;
 
 export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
   const game = useGameStore();
@@ -49,7 +49,7 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
 
   function isDragFar(sx: number, sy: number): boolean {
     if (!clickStartPos) return true;
-    return Math.hypot(sx - clickStartPos.sx, sy - clickStartPos.sy) > 5;
+    return Math.hypot(sx - clickStartPos.sx, sy - clickStartPos.sy) > DRAG_THRESHOLD;
   }
 
   // ---- pointer events ----
@@ -91,7 +91,7 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       return;
     }
 
-    // right click → context menu (existing logic)
+    // right click → context menu
     if (ev.button === 2) {
       ev.preventDefault();
       planningArmed.value = game.selectPlannerByPoint(worldPoint(ev));
@@ -101,20 +101,18 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     // left click
     if (ev.button === 0) {
       if (game.interactionMode === 'planPath') {
-        // planPath mode: left drag = draw path
-        drawing.value = true;
-        planningArmed.value = false;
-        game.beginPathAt(worldPoint(ev));
+        // planPath: delay path start until drag exceeds threshold.
+        // This prevents accidental clicks from resetting the path
+        // or switching the active planner to an enemy unit.
         ev.preventDefault();
       } else {
         // browse mode: check if planningArmed (from right-click context)
-        if (planningArmed.value && ev.button === 0) {
+        if (planningArmed.value) {
           drawing.value = true;
           planningArmed.value = false;
           game.beginPathAt(worldPoint(ev));
           ev.preventDefault();
         }
-        // otherwise: select unit or nothing — we handle this on pointer up if no drag
       }
     }
   }
@@ -128,14 +126,7 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     }
 
     // pinch zoom (2+ pointers)
-    if (pointers.size >= 2) {
-      const pts = Array.from(pointers.values());
-      const dx = pts[1]!.sx - pts[0]!.sx;
-      const dy = pts[1]!.sy - pts[0]!.sy;
-      const dist = Math.hypot(dx, dy);
-      // store pinch state and handle in pointermove
-      return;
-    }
+    if (pointers.size >= 2) return;
 
     // pan in progress
     if (panStart) {
@@ -147,6 +138,16 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     if (game.ruler.active && pointers.size === 1) {
       const wp = worldPoint(ev);
       game.ruler.end = wp;
+      return;
+    }
+
+    // planPath: start drawing once drag exceeds threshold
+    if (game.interactionMode === 'planPath' && clickStartPos && !drawing.value) {
+      if (isDragFar(sp.sx, sp.sy)) {
+        drawing.value = true;
+        planningArmed.value = false;
+        game.beginPathAt(screenToWorld(sp.sx, sp.sy, game.camera));
+      }
       return;
     }
 
@@ -165,7 +166,17 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
 
     if (game.ruler.active) { game.ruler.active = false; return; }
 
-    // left click without drag → select unit
+    // planPath mode: finalize drawing but never select planner
+    if (game.interactionMode === 'planPath') {
+      if (drawing.value) {
+        game.finalizePathDrawing();
+        drawing.value = false;
+      }
+      clickStartPos = null;
+      return;
+    }
+
+    // browse mode: left click without drag → select unit
     if (ev.button === 0 && clickStartPos && !isDragFar(screenPoint(ev).sx, screenPoint(ev).sy)) {
       const wp = worldPoint(ev);
       const hit = game.selectPlannerByPoint(wp);
@@ -232,11 +243,6 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     window.removeEventListener('keyup', onKeyUp);
   });
 
-  // ---- toggle interaction mode ----
-  function togglePlanPath() {
-    game.interactionMode = game.interactionMode === 'planPath' ? 'browse' : 'planPath';
-  }
-
   return {
     planningArmed, drawing, canvasCursor,
     onPointerDown, onPointerMove, onPointerUp, onPointerCancel, onWheel,
@@ -247,6 +253,5 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     onDoubleClick: (ev: MouseEvent) => {
       planningArmed.value = game.selectPlannerByPoint(worldPoint(ev));
     },
-    togglePlanPath,
   };
 }

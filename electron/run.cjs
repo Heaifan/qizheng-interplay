@@ -1,9 +1,14 @@
-// Wrapper that unsets ELECTRON_RUN_AS_NODE before spawning Electron.
-// VS Code's extension host sets this, making Electron act as plain Node.js.
-const { spawn } = require('child_process');
+// Wrapper that kills existing Electron processes before spawning a new one,
+// and unsets ELECTRON_RUN_AS_NODE (VS Code extension host sets this).
+const { spawn, execSync } = require('child_process');
 const electronPath = require('electron');
 
 delete process.env.ELECTRON_RUN_AS_NODE;
+
+// Kill any existing Electron processes before starting a new instance
+try {
+  execSync('taskkill /f /im electron.exe 2>nul', { stdio: 'ignore' });
+} catch (_) { /* no existing process */ }
 
 const child = spawn(electronPath, process.argv.slice(2), {
   stdio: 'inherit',

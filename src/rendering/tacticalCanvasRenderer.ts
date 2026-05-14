@@ -87,7 +87,7 @@ export function renderTacticalScene(
   drawSectorLabels(ctx, snap.unitFields, snap.showSectorLabels, snap.highlightedUnitId);
   drawReadabilityLines(ctx, snap.readabilityHints);
   drawShots(ctx, snap.shots);
-  drawUnits(ctx, snap.units, snap.highlightedUnitId);
+  drawUnits(ctx, snap.units, snap.highlightedUnitId, cam.zoom);
 
   ctx.restore();
 
