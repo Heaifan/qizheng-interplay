@@ -1,16 +1,5 @@
 import type { CameraState } from '@/domain/camera';
-
-const NICE_SCALES = [10, 25, 50, 100, 200, 500, 1000, 2000];
-
-function pickScale(zoom: number): { meters: number; pixels: number } {
-  const targetPixels = 100;
-  const rawMeters = targetPixels / zoom;
-  let best = NICE_SCALES[0]!;
-  for (const s of NICE_SCALES) {
-    if (Math.abs(s - rawMeters) < Math.abs(best - rawMeters)) best = s;
-  }
-  return { meters: best, pixels: best * zoom };
-}
+import { getScaleMetersForZoom } from '@/domain/mapScale';
 
 export function drawScaleBar(
   ctx: CanvasRenderingContext2D,
@@ -18,11 +7,14 @@ export function drawScaleBar(
   cw: number,
   ch: number,
 ): void {
-  const { meters, pixels } = pickScale(cam.zoom);
+  const scaleMeters = getScaleMetersForZoom(cam.zoom);
+  const pixels = scaleMeters * cam.zoom;
   const padX = 12;
   const padY = 10;
   const barH = 22;
-  const label = meters >= 1000 ? `${meters / 1000}km` : `${meters}m`;
+  const label = scaleMeters >= 1000
+    ? `${scaleMeters / 1000}km / 格`
+    : `${scaleMeters}m / 格`;
   const labelWidth = ctx.measureText(label).width;
   const totalW = Math.max(pixels + padX * 2, labelWidth + 20);
   const barX = padX;
