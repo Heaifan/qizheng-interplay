@@ -1,8 +1,7 @@
-import { BUSHES, COVERS } from '@/domain/terrain';
 import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
-import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
 import type { RuntimeUnit } from '@/domain/types';
-import { BASE_HIT_CHANCE, FIRE_ARC_HALF_RAD, MAX_RANGE } from './combat';
+import { FIRE_ARC_HALF_RAD } from './combat';
+import { calculateDirectFireContext } from './combatFormula';
 
 const VISION_ANGLE_DEG = 110;
 const VISION_RANGE = 700;
@@ -40,43 +39,27 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
   ];
 
   return pair.map(({ attacker, target }) => {
-    const dx = target.x - attacker.x;
-    const dy = target.y - attacker.y;
-    const distance = Math.hypot(dx, dy);
-    const blocked = segmentBlockedByAnyCover(attacker.x, attacker.y, target.x, target.y, COVERS);
-    const throughBush = segmentNearAnyBush(attacker.x, attacker.y, target.x, target.y, BUSHES);
+    const ctx = calculateDirectFireContext(attacker, target);
     const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
     const angleOffset = angleDiffRad(targetBearing, attacker.angle);
-    const inFireArc = angleOffset <= FIRE_ARC_HALF_RAD;
-    const inPerception = angleOffset <= HALF_VISION_RAD && distance <= VISION_RANGE;
-    const angleFactor = inFireArc
-      ? 0.7 + Math.max(0, 1 - angleOffset / FIRE_ARC_HALF_RAD) * 0.3
-      : inPerception
-        ? 0.18
-        : 0.08;
-    let hitChance = BASE_HIT_CHANCE;
-    hitChance *= angleFactor;
-    if (blocked) hitChance *= 0.25;
-    if (throughBush) hitChance *= 0.6;
-    if (distance > MAX_RANGE) hitChance = 0;
+    const inPerception = angleOffset <= HALF_VISION_RAD && ctx.distance <= VISION_RANGE;
+
     return {
       attackerId: attacker.id,
-      attackerX: attacker.x,
-      attackerY: attacker.y,
+      attackerX: attacker.x, attackerY: attacker.y,
       targetId: target.id,
-      targetX: target.x,
-      targetY: target.y,
-      distance,
-      blocked,
-      throughBush,
-      angleOffsetDeg: radToDeg(angleOffset),
+      targetX: target.x, targetY: target.y,
+      distance: ctx.distance,
+      blocked: ctx.blocked,
+      throughBush: ctx.throughBush,
+      angleOffsetDeg: ctx.angleOffsetDeg,
       targetBearing,
       attackerFacing: attacker.angle,
       fireArcHalfDeg: radToDeg(FIRE_ARC_HALF_RAD),
-      inFireArc,
+      inFireArc: ctx.inFireArc,
       inPerception,
-      hitChance,
-      inRange: distance <= MAX_RANGE,
+      hitChance: ctx.hitChance,
+      inRange: ctx.inRange,
       color: attacker.stroke,
     };
   });

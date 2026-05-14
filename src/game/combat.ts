@@ -1,15 +1,9 @@
 import type { Ref } from 'vue';
-import { BUSHES, COVERS } from '@/domain/terrain';
-import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
-import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
+import { bearingBetween } from '@/domain/angles';
+import { calculateDirectFireContext } from './combatFormula';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
-export const FIRE_COOLDOWN_MS = 550;
-export const MAX_RANGE = 900;
-export const BASE_HIT_CHANCE = 0.75;
-
-const FIRE_ARC_DEG = 60;
-export const FIRE_ARC_HALF_RAD = (FIRE_ARC_DEG * Math.PI) / 360;
+export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
 
 export function missionTimeLabel(elapsedMs: number): string {
   const sec = Math.max(0, Math.floor(elapsedMs / 1000));
@@ -29,46 +23,43 @@ export interface CombatDeps {
 export function createCombatActions(d: CombatDeps) {
   function tryFire(attacker: RuntimeUnit, target: RuntimeUnit, now: number): void {
     if (attacker.dead || target.dead) return;
-    const dx = target.x - attacker.x;
-    const dy = target.y - attacker.y;
-    const distance = Math.hypot(dx, dy);
-    if (distance > MAX_RANGE) return;
+
+    const ctx = calculateDirectFireContext(attacker, target);
+    if (!ctx.inRange || !ctx.inFireArc) return;
+    if (now - attacker.lastFireTime < ctx.fireCooldownMs) return;
 
     const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
-    const angleOffRad = angleDiffRad(targetBearing, attacker.angle);
-    if (angleOffRad > FIRE_ARC_HALF_RAD) return;
-    if (now - attacker.lastFireTime < FIRE_COOLDOWN_MS) return;
-
-    // sync tactical facing to actual shot direction
     attacker.angle = targetBearing;
     attacker.fireAngle = targetBearing;
     const threatBearing = bearingBetween(target.x, target.y, attacker.x, attacker.y);
     target.angle = threatBearing;
     attacker.lastFireTime = now;
 
-    const blocked = segmentBlockedByAnyCover(
-      attacker.x, attacker.y, target.x, target.y, COVERS,
-    );
-    const throughBush = segmentNearAnyBush(
-      attacker.x, attacker.y, target.x, target.y, BUSHES,
-    );
-
-    let hitChance = BASE_HIT_CHANCE;
-    const mods: string[] = [];
-    if (blocked) { hitChance *= 0.25; mods.push('遮挡'); }
-    if (throughBush) { hitChance *= 0.6; mods.push('灌木'); }
-
-    const hit = Math.random() < hitChance;
     d.shots.value.push({
       x1: attacker.x, y1: attacker.y,
       x2: target.x, y2: target.y,
-      color: attacker.stroke, alpha: 1, blocked,
+      color: attacker.stroke, alpha: 1, blocked: ctx.blocked,
     });
 
-    const logBase = `开火｜距 ${distance.toFixed(0)}m｜夹角 ${radToDeg(angleOffRad).toFixed(0)}°｜命中率 ${(hitChance * 100).toFixed(0)}%${mods.length ? `｜${mods.join('/')}` : ''}`;
+    const modParts: string[] = [];
+    if (ctx.blocked) modParts.push('遮挡');
+    if (ctx.throughBush) modParts.push('灌木');
+    const modStr = modParts.length ? `｜${modParts.join('/')}` : '';
 
+    const logBase =
+      `${ctx.weaponName} 开火` +
+      `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
+      `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
+      `｜距离×${ctx.distanceModifier.toFixed(2)}` +
+      `｜专注×${ctx.focusModifier.toFixed(2)}` +
+      `｜打击×${ctx.strikeModifier.toFixed(2)}` +
+      `${modStr}` +
+      `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
+      `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
+
+    const hit = Math.random() < ctx.hitChance;
     if (hit) {
-      const damage = 16 + Math.floor(Math.random() * 15);
+      const damage = Math.round(ctx.averageDamage * (0.75 + Math.random() * 0.5));
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;

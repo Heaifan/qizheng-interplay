@@ -2,7 +2,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
-import { deriveWeaponStats } from '@/domain/weapon';
+import { deriveWeaponStats } from '@/game/combatFormula';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
 
 const game = useGameStore();
@@ -46,6 +46,7 @@ watch(uiPanelTab, (tab) => {
 });
 
 const weaponStats = computed(() => deriveWeaponStats(editing.weapon));
+const weaponExpanded = ref(false);
 
 function apply(): void {
   const unit = units.value[selectedIdx.value];
@@ -58,6 +59,17 @@ const actionOptions: { value: WeaponAction; label: string }[] = [
   { value: 'semi', label: '半自动 (semi)' },
   { value: 'auto', label: '全自动 (auto)' },
 ];
+
+function weaponTypeLabel(): string {
+  const cat = editing.weapon.category ?? (editing.weapon.action === 'bolt' ? 'rifle' : 'rifle');
+  const catMap: Record<string, string> = { rifle: '步枪', machine_gun: '机枪', mortar: '迫击炮', anti_tank: '反坦克', artillery: '火炮' };
+  return catMap[cat] ?? '步枪';
+}
+
+function actionLabel(): string {
+  const m: Record<string, string> = { bolt: '栓动', semi: '半自动', auto: '全自动' };
+  return m[editing.weapon.action] ?? '栓动';
+}
 </script>
 
 <template>
@@ -127,55 +139,49 @@ const actionOptions: { value: WeaponAction; label: string }[] = [
       </div>
     </div>
 
-    <!-- 武器参数卡片 -->
+    <!-- 武器挂载卡片（可折叠） -->
     <div class="editor-card">
-      <div class="card-title">武器参数</div>
-      <div class="field-row">
-        <span class="field-label">名称</span>
-        <input v-model="editing.weapon.name" type="text" class="field-input" />
+      <div class="card-title weapon-mount-title" @click="weaponExpanded = !weaponExpanded">
+        <span>武器挂载</span>
+        <span class="collapse-icon">{{ weaponExpanded ? '▼' : '▶' }}</span>
       </div>
-      <div class="field-row">
-        <span class="field-label">口径 (mm)</span>
-        <input v-model.number="editing.weapon.caliber" type="number" min="0" step="0.01" class="field-num" />
+      <!-- 折叠摘要 -->
+      <div v-if="!weaponExpanded" class="mount-summary">
+        <div class="mount-name">{{ editing.weapon.name || '未挂载' }}</div>
+        <div class="mount-tags">{{ weaponTypeLabel() }} ｜ 直射 ｜ {{ actionLabel() }}</div>
+        <div class="mount-specs">{{ editing.weapon.caliber }}mm ｜ 枪管 {{ editing.weapon.barrelLength }}mm ｜ 瞄具 {{ editing.weapon.sightMag }}x</div>
       </div>
-      <div class="field-row">
-        <span class="field-label">枪机</span>
-        <select v-model="editing.weapon.action" class="field-select">
-          <option v-for="o in actionOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-        </select>
-      </div>
-      <div class="field-row">
-        <span class="field-label">枪管长 (mm)</span>
-        <input v-model.number="editing.weapon.barrelLength" type="number" min="0" class="field-num" />
-      </div>
-      <div class="field-row">
-        <span class="field-label">瞄具倍率</span>
-        <input v-model.number="editing.weapon.sightMag" type="number" min="0" step="0.1" class="field-num" />
-      </div>
-    </div>
-
-    <!-- 武器推导结果卡片 -->
-    <div class="editor-card derived-card">
-      <div class="derived-title">武器推导结果</div>
-      <div class="derived-row">
-        <span>精度</span>
-        <strong>{{ weaponStats.accuracy.toFixed(3) }}</strong>
-      </div>
-      <div class="derived-row">
-        <span>有效射程</span>
-        <strong>{{ weaponStats.effectiveRange.toFixed(0) }} m</strong>
-      </div>
-      <div class="derived-row">
-        <span>射击间隔</span>
-        <strong>{{ weaponStats.fireIntervalMs.toFixed(0) }} ms</strong>
-      </div>
-      <div class="derived-row">
-        <span>致命性</span>
-        <strong>{{ weaponStats.lethality.toFixed(2) }}</strong>
-      </div>
-      <div class="derived-row">
-        <span>射速 (RPM)</span>
-        <strong>{{ weaponStats.actionRPM }}</strong>
+      <!-- 展开详情 -->
+      <div v-if="weaponExpanded">
+        <div class="field-row">
+          <span class="field-label">名称</span>
+          <input v-model="editing.weapon.name" type="text" class="field-input" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">口径 (mm)</span>
+          <input v-model.number="editing.weapon.caliber" type="number" min="0" step="0.01" class="field-num" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">枪机</span>
+          <select v-model="editing.weapon.action" class="field-select">
+            <option v-for="o in actionOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">枪管长 (mm)</span>
+          <input v-model.number="editing.weapon.barrelLength" type="number" min="0" class="field-num" />
+        </div>
+        <div class="field-row">
+          <span class="field-label">瞄具倍率</span>
+          <input v-model.number="editing.weapon.sightMag" type="number" min="0" step="0.1" class="field-num" />
+        </div>
+        <div class="derived-section">
+          <div class="derived-subtitle">算法推导</div>
+          <div class="derived-row"><span>武器精度</span><strong>{{ weaponStats.weaponAccuracy.toFixed(3) }}</strong></div>
+          <div class="derived-row"><span>有效射程</span><strong>{{ weaponStats.effectiveRange.toFixed(0) }} m</strong></div>
+          <div class="derived-row"><span>终端杀伤</span><strong>{{ weaponStats.terminalEffect.toFixed(3) }}</strong></div>
+          <div class="derived-row"><span>射击节奏</span><strong>{{ weaponStats.fireTempo.toFixed(2) }}</strong></div>
+        </div>
       </div>
     </div>
 
@@ -330,25 +336,61 @@ const actionOptions: { value: WeaponAction; label: string }[] = [
   align-items: center;
 }
 
-.derived-card {
-  background: var(--derived-bg);
-  border: 1px solid var(--derived-border);
+.weapon-mount-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
 }
 
-.derived-title {
-  font-size: 14px;
+.collapse-icon {
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.mount-summary {
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.mount-name {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.mount-tags {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.mount-specs {
+  color: var(--text-dim);
+  font-size: 12px;
+}
+
+.derived-section {
+  margin-top: 10px;
+  padding: 8px;
+  background: var(--derived-bg);
+  border: 1px solid var(--derived-border);
+  border-radius: 4px;
+}
+
+.derived-subtitle {
+  font-size: 12px;
   font-weight: 600;
   color: var(--derived-title);
   border-bottom: 1px solid var(--derived-border);
-  padding-bottom: 6px;
-  margin-bottom: 10px;
+  padding-bottom: 4px;
+  margin-bottom: 8px;
   letter-spacing: 0.3px;
 }
 
 .derived-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
   font-size: 13px;
   line-height: 1.6;
 }

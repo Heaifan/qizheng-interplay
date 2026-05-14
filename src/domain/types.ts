@@ -4,6 +4,13 @@ export type UnitShape = 'circle' | 'diamond';
 
 export type WeaponAction = 'bolt' | 'semi' | 'auto';
 
+export type WeaponCategory =
+  | 'rifle'
+  | 'machine_gun'
+  | 'mortar'
+  | 'anti_tank'
+  | 'artillery';
+
 export interface WeaponProfile {
   id: string;
   name: string;
@@ -11,6 +18,8 @@ export interface WeaponProfile {
   action: WeaponAction;
   barrelLength: number;
   sightMag: number;
+  category?: WeaponCategory;
+  tags?: string[];
 }
 
 export interface WeaponDerivedStats {
