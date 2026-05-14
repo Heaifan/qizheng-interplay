@@ -1,5 +1,6 @@
 import type { Ref } from 'vue';
 import { computed } from 'vue';
+import type { CameraState } from '@/domain/camera';
 import { BUSHES, COVERS } from '@/domain/terrain';
 import type { GameMode, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { deriveWeaponStats } from '@/domain/weapon';
@@ -11,6 +12,7 @@ export interface DerivedDeps {
   mode: Ref<GameMode>;
   highlightedUnitId: Ref<string | null>;
   uiPanelTab: Ref<'log' | 'editor'>;
+  camera: Ref<CameraState>;
 }
 
 const PERCEPTION_HALF_ANGLE = (110 * Math.PI) / 360;
@@ -56,6 +58,7 @@ export function createDerivedState(d: DerivedDeps) {
     showPathArrow: true,
     highlightedUnitId: d.highlightedUnitId.value,
     showSectorLabels: showSectorLabels.value,
+    camera: d.camera.value,
   }));
 
   return { readabilityHints, renderSnapshot };

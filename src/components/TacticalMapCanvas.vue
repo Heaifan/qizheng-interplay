@@ -7,7 +7,7 @@ import { useAnimationLoop } from './canvas/useAnimationLoop';
 
 const canvasRef = useTemplateRef('canvas');
 const input = useCanvasInput(canvasRef);
-const { canvasCursor, onDown, onContextMenu, onDoubleClick, onMove, onUp } = input;
+const { canvasCursor, onDown, onContextMenu, onDoubleClick, onMove, onUp, onWheel } = input;
 const touch = useCanvasTouch(canvasRef, input.planningArmed, input.drawing);
 const anim = useAnimationLoop(canvasRef, input.drawing);
 
@@ -20,6 +20,7 @@ onMounted(() => {
     canvas.addEventListener('touchstart', touch.onTouchStart, { passive: false });
     canvas.addEventListener('touchmove', touch.onTouchMove, { passive: false });
     canvas.addEventListener('touchend', touch.onTouchEnd);
+    canvas.addEventListener('wheel', onWheel, { passive: false });
   }
 });
 

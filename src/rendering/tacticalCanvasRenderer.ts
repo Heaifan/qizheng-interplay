@@ -1,4 +1,5 @@
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from '@/domain/constants';
+import type { CameraState } from '@/domain/camera';
 import type { BushCircle, CoverRect, RuntimeUnit, ShotTrail } from '@/domain/types';
 import type { ReadabilityHint } from '@/game/readability';
 import { drawGridAndScale, drawCovers, drawBushes } from './drawTerrain';
@@ -10,8 +11,9 @@ import {
   drawSectorCenterLines,
   type UnitFieldData,
 } from './drawSectors';
-import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
 import { drawSectorLabels } from './drawSectorLabels';
+import { drawReadabilityLines, drawPlannedPath } from './drawPathsShots';
+import { drawScaleBar } from './drawScaleBar';
 import { drawShots, drawUnits } from './drawUnits';
 
 export interface TacticalRenderSnapshot {
@@ -26,13 +28,22 @@ export interface TacticalRenderSnapshot {
   showPathArrow: boolean;
   highlightedUnitId: string | null;
   showSectorLabels: boolean;
+  camera: CameraState;
 }
 
 export function renderTacticalScene(
   ctx: CanvasRenderingContext2D,
   snap: TacticalRenderSnapshot,
 ): void {
+  const cam = snap.camera;
+
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+  // battlefield: all drawing is in world coordinates, apply camera
+  ctx.save();
+  ctx.translate(cam.offsetX, cam.offsetY);
+  ctx.scale(cam.zoom, cam.zoom);
+
   drawGridAndScale(ctx);
   drawCovers(ctx, snap.covers);
   drawBushes(ctx, snap.bushes);
@@ -72,4 +83,9 @@ export function renderTacticalScene(
   drawReadabilityLines(ctx, snap.readabilityHints);
   drawShots(ctx, snap.shots);
   drawUnits(ctx, snap.units, snap.highlightedUnitId);
+
+  ctx.restore();
+
+  // overlay — not affected by camera
+  drawScaleBar(ctx, cam, CANVAS_WIDTH, CANVAS_HEIGHT);
 }

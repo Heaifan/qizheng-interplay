@@ -34,7 +34,7 @@ export function drawUnits(
     ctx.font = '11px Microsoft YaHei, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#5C554A';
-    ctx.fillText(nameLabel, 0, -42);
+    ctx.fillText(nameLabel, 0, 34);
 
     const isHighlighted = highlightedUnitId === u.id;
 

@@ -103,6 +103,7 @@ src/
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
 | `weapon.ts` | **武器基础推导唯一来源**：`weaponAccuracy` / `effectiveRange` / `terminalEffect` / `fireTempo` / `directFireContribution` |
 | `helpers.ts` | 通用工具：`clamp` |
+| `camera.ts` | 战场相机：`CameraState`、`screenToWorld` / `worldToScreen`、`zoomAtScreenPoint`，1 world unit = 1 米 |
 | `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
 | `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
 | `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形 |
@@ -133,7 +134,8 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `tacticalCanvasRenderer.ts` | Canvas 渲染协调器，按顺序调用各子渲染函数 |
-| `drawTerrain.ts` | 绘制地图底色、网格、比例尺、掩体、灌木 |
+| `drawTerrain.ts` | 绘制地图底色、网格、掩体、灌木 |
+| `drawScaleBar.ts` | 动态比例尺 overlay，随 zoom 显示 25m/50m/100m/200m 等 |
 | `drawSectors.ts` | 绘制三层单位场：感知场、火力场、控制场 |
 | `drawPathsShots.ts` | 绘制规划路径、路径箭头与交火可读性连线 |
 | `drawUnits.ts` | 绘制单位、血条、方向指示器、高亮光环和弹道轨迹 |
@@ -227,8 +229,9 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.2.4.2` | 2026-05-10 | 功能 | 地图缩放 + 动态比例尺：`camera.ts` / `drawScaleBar.ts`，0.5x–4.0x 滚轮缩放 |
 | `v0.2.4.1` | 2026-05-10 | 重构 | 武器公式源统一：`domain/weapon.ts` 为唯一起源，`combatFormula.ts` 复用 |
-| `v0.2.4` | 2026-05-10 | 功能 | 武器挂载卡片 + 直接火力公式：`combatFormula.ts` |Kar98k/M91/30 参与命中率/伤害/冷却 |
+| `v0.2.4` | 2026-05-10 | 功能 | 武器挂载卡片 + 直接火力公式：`combatFormula.ts`，Kar98k/M91/30 参与命中率/伤害/冷却 |
 | `v0.2.3` | 2026-05-10 | 修复 | 方向系统统一：共享角度工具 + 开火时同步 `angle` + 扇区中心线 + 日志强化 |
 | `v0.2.2` | 2026-05-09 | 渲染 | 扇区语义拆分：感知场 (110°/700m)、火力场 (60°/effectiveRange)、控制场 (80°/≤250m) |
 | `v0.2.1` | 2026-05-09 | UI | 浅色竹简 / 羊皮纸风格 UI，单位档案卡视觉改版，播放条图标替换，战斗日志事件标签化 |

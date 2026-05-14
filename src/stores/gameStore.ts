@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import type { CameraState } from '@/domain/camera';
+import { DEFAULT_ZOOM } from '@/domain/camera';
 import type { GameMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { createCombatActions, missionTimeLabel } from '@/game/combat';
 import { createPathEditActions } from '@/game/path-editing';
@@ -26,6 +28,7 @@ export const useGameStore = defineStore('game', () => {
   const toolbarHighlight = ref<'blue' | 'red' | 'exec' | null>(null);
   const highlightedUnitId = ref<string | null>(null);
   const uiPanelTab = ref<'log' | 'editor'>('log');
+  const camera = ref<CameraState>({ zoom: DEFAULT_ZOOM, offsetX: 0, offsetY: 0 });
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
@@ -64,7 +67,7 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera });
 
   const canStepBack = computed(() => timelineIndex.value > 0);
   const canStepForward = computed(() =>
@@ -83,7 +86,7 @@ export const useGameStore = defineStore('game', () => {
 
   return {
     mode, executionState, units, shots, logs, toolbarHighlight,
-    highlightedUnitId, uiPanelTab,
+    highlightedUnitId, uiPanelTab, camera,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,
     playbackMin, playbackMax, timelineIndex,
