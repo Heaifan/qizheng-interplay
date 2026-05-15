@@ -1,6 +1,7 @@
 import type { Ref } from 'vue';
 import { bearingBetween } from '@/domain/angles';
 import { calculateDirectFireContext } from './combatFormula';
+import { calculateFireOutput } from '@/domain/fireOutput';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
@@ -57,9 +58,20 @@ export function createCombatActions(d: CombatDeps) {
       `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
       `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
 
+    const fireOutput = calculateFireOutput(
+      attacker.combatProfile.weapon.effectClass,
+      {
+        rangeM: ctx.distance,
+        targetType: 'personnel',
+        protectionLevel: ctx.blocked ? 'medium_cover' : 'none',
+      },
+    );
+
     const hit = Math.random() < ctx.hitChance;
     if (hit) {
-      const damage = Math.round(ctx.averageDamage * (0.75 + Math.random() * 0.5));
+      const baseDamage = 24;
+      const randomSwing = 0.85 + Math.random() * 0.3;
+      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing));
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;
@@ -67,7 +79,13 @@ export function createCombatActions(d: CombatDeps) {
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜命中，造成 ${damage} 伤害`, 'log-hit');
+        const foParts = [
+          `FO ${fireOutput.value.toFixed(2)}`,
+          fireOutput.effectClass,
+          fireOutput.rangeBand,
+          fireOutput.protectionLevel,
+        ].join('/');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foParts}｜命中，造成 ${damage} 伤害`, 'log-hit');
       }
     } else {
       d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中`, 'log-miss');

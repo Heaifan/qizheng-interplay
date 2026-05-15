@@ -102,6 +102,8 @@ src/
 | `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
 | `weapon.ts` | **武器基础推导唯一来源**：`weaponAccuracy` / `effectiveRange` / `terminalEffect` / `fireTempo` / `directFireContribution` |
+| `fireOutput.ts` | 火力输出模型：`TargetType`、`FireOutputContext`、`calculateFireOutput` — EffectClass × 距离 × 防护 × 投送方式 |
+| `fireOutputTables.ts` | 火力输出系数表：`EFFECT_CLASS_BASE`、`KINETIC_RANGE_FACTORS`、`PROTECTION_FACTORS` |
 | `helpers.ts` | 通用工具：`clamp` |
 | `camera.ts` | 战场相机：`CameraState`、`screenToWorld` / `worldToScreen`、`zoomAtScreenPoint`，1 world unit = 1 米 |
 | `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
@@ -113,7 +115,7 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `movement.ts` | 沿路径推进单位，更新位置与朝向 |
-| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正（使用 `combatFormula.ts` 结算） |
+| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正（使用 `combatFormula.ts` 结算，命中后通过 `fireOutput.ts` 计算实际毁伤） |
 | `combatFormula.ts` | 直接火力战斗上下文：基于武器推导 + 单位状态 + 地形条件计算 `hitChance` / `averageDamage` / `fireCooldownMs` / `firePressure` |
 | `path-editing.ts` | 路径编辑流程：开始、扩展、平滑、确认、撤销、重做 |
 | `timeline.ts` | 时间轴管理：快照克隆、恢复、提交、基线持久化 |
@@ -230,6 +232,11 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.3.1.1` | 2026-05-15 | 功能 | 六力模型·打击力专题：火力输出 — EffectClass × 距离 × 防护 × 投送方式推导命中毁伤 |
+| `v0.2.4.3.3` | 2026-05-15 | 修复 | 工具栏事件隔离 + 测距性能修复：RAF 节流 + 模式切换清理 |
+| `v0.2.4.3.2` | 2026-05-15 | 修复 | 单位图标锁定 + 规划模式路径修复 + Electron 重启守卫 |
+| `v0.2.4.3` | 2026-05-14 | 功能 | 测距工具：Alt+drag 距离/方位角测量 |
+| `v0.2.4.2.3` | 2026-05-13 | 修复 | 比例尺驱动动态网格 |
 | `v0.2.4.2.2` | 2026-05-10 | 功能 | PC/App 视图适配：Pointer Events + 中键/空格平移 + 双指缩放 + 交互模式 + 单位名称 Overlay |
 | `v0.2.4.2.1` | 2026-05-10 | 修复 | 比例尺/网格坐标统一：视口网格 `drawViewportGrid.ts`，删除旧 `drawGridAndScale`，米制统一 |
 | `v0.2.4.2` | 2026-05-10 | 功能 | 地图缩放 + 动态比例尺：`camera.ts` / `drawScaleBar.ts`，0.5x–4.0x 滚轮缩放 |
@@ -247,7 +254,11 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 目标 |
 | --- | --- |
-| `v0.3.0` | 压制火力与压制系统原型 |
+| `v0.3.1.1` | 打击力·火力输出：EffectClass × 距离 × 防护 × 投送方式 |
+| `v0.3.1.2` | 打击力·火力精度：准确度与命中判定系统 |
+| `v0.3.1.3` | 打击力·压制能力：压制与恐慌传导 |
+| `v0.3.1.4` | 打击力·火力持续：弹药管理与持续射击 |
+| `v0.3.2+` | 其余五力（机动、生存、感知、控制、保障）逐步接入 |
 | `v0.4.0` | 替换 HP 系统，引入 1d10 伤势判定 |
 | `v0.5.0` | 初步接入三状态对战斗表现的影响 |
 | `v0.6.0` | 单兵到班级的聚合验证 |

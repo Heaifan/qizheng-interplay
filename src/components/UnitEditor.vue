@@ -15,7 +15,7 @@ function blankProfile(): CombatProfile {
     id: '', name: '', faction: 'blue',
     states: { stamina: 50, morale: 50, focus: 50 },
     forces: { strike: 50, survival: 50, mobility: 50, perception: 50, control: 50, sustainment: 50 },
-    weapon: { id: '', name: '', caliber: 7.62, action: 'bolt', barrelLength: 600, sightMag: 1.0 },
+    weapon: { id: '', name: '', caliber: 7.62, action: 'bolt', barrelLength: 600, sightMag: 1.0, family: 'bolt_action_rifle', outputMode: 'kinetic_single', effectClass: 'full_power_rifle' },
     woundState: 'healthy',
   };
 }
