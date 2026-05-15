@@ -2,6 +2,7 @@ import type { Ref } from 'vue';
 import { bearingBetween } from '@/domain/angles';
 import { calculateDirectFireContext } from './combatFormula';
 import { calculateFireOutput } from '@/domain/fireOutput';
+import { formatFireOutputTag } from '@/domain/fireOutputFormat';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
@@ -67,7 +68,7 @@ export function createCombatActions(d: CombatDeps) {
       },
     );
 
-    const foTag = `FO ${fireOutput.value.toFixed(2)}/${fireOutput.effectClass}/${fireOutput.rangeBand}/${fireOutput.protectionLevel}`;
+    const foTag = formatFireOutputTag(fireOutput.value, fireOutput.effectClass, fireOutput.rangeBand, fireOutput.protectionLevel);
 
     const hit = Math.random() < ctx.hitChance;
     if (hit) {
