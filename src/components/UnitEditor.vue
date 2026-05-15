@@ -3,9 +3,9 @@ import { computed, reactive, ref, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
 import { deriveWeaponStats } from '@/domain/weapon';
-import { generateFireOutputCurve, generateFireOutputTargetTable } from '@/domain/fireOutputCurve';
-import { formatEffectClass, formatTargetType, formatRangeBand } from '@/domain/fireOutputFormat';
+import { formatEffectClass } from '@/domain/fireOutputFormat';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
+import FireOutputChart from './FireOutputChart.vue';
 
 const game = useGameStore();
 const { units, uiPanelTab, highlightedUnitId } = storeToRefs(game);
@@ -50,24 +50,6 @@ watch(uiPanelTab, (tab) => {
 const weaponStats = computed(() => deriveWeaponStats(editing.weapon));
 const weaponExpanded = ref(false);
 
-const fireOutputCurve = computed(() => generateFireOutputCurve(editing.weapon, 'personnel', 'none'));
-const fireOutputTargetTable = computed(() => generateFireOutputTargetTable(editing.weapon, 100, 'none'));
-
-function foSvgPoints(curve: { rangeM: number; value: number }[]): string {
-  const w = 260;
-  const h = 70;
-  const pad = 4;
-  const maxR = 1000;
-  const maxV = Math.max(...curve.map((p) => p.value), 0.1);
-  return curve
-    .map((p) => {
-      const x = pad + (p.rangeM / maxR) * (w - pad * 2);
-      const y = h - pad - (p.value / maxV) * (h - pad * 2);
-      return `${x},${y}`;
-    })
-    .join(' ');
-}
-
 function apply(): void {
   const unit = units.value[selectedIdx.value];
   if (!unit) return;
@@ -90,28 +72,21 @@ function actionLabel(): string {
   const m: Record<string, string> = { bolt: '栓动', semi: '半自动', auto: '全自动' };
   return m[editing.weapon.action] ?? '栓动';
 }
+
+function factionLabel(): string {
+  return editing.faction === 'blue' ? '蓝方' : '红方';
+}
 </script>
 
 <template>
   <div class="unit-editor">
-    <!-- 单位选择卡片 -->
+    <!-- 当前单位摘要 -->
     <div class="editor-card">
-      <div class="card-title">单位选择</div>
-      <div class="unit-toggle">
-        <button
-          :class="['toggle-btn blue', { active: selectedIdx === 0 }]"
-          @click="selectedIdx = 0"
-        >
-          蓝方
-        </button>
-        <button
-          :class="['toggle-btn red', { active: selectedIdx === 1 }]"
-          @click="selectedIdx = 1"
-        >
-          红方
-        </button>
+      <div class="card-title">当前单位</div>
+      <div class="unit-summary">
+        <div class="unit-summary-name">{{ editing.name }}</div>
+        <div class="unit-summary-tags">{{ factionLabel() }} ｜ {{ editing.weapon.name || '未挂载' }} ｜ {{ formatEffectClass(editing.weapon.effectClass) }}</div>
       </div>
-      <div class="profile-subtitle">当前：{{ editing.name }}</div>
     </div>
 
     <!-- 基本信息卡片 -->
@@ -203,41 +178,8 @@ function actionLabel(): string {
           <div class="derived-row"><span>射击节奏</span><strong>{{ weaponStats.fireTempo.toFixed(2) }}</strong></div>
         </div>
 
-        <!-- 火力输出 FireOutput -->
-        <div class="derived-section fo-section">
-          <div class="derived-subtitle">火力输出 FireOutput</div>
-          <div class="fo-meta">
-            <span>效果等级：{{ formatEffectClass(editing.weapon.effectClass) }}</span>
-            <span>输出模式：{{ editing.weapon.outputMode }}</span>
-          </div>
-          <div class="fo-table-label">目标适配（100m）</div>
-          <div class="fo-table">
-            <div class="fo-tr fo-th">
-              <span>目标</span>
-              <span>输出</span>
-            </div>
-            <div v-for="row in fireOutputTargetTable" :key="row.targetType" class="fo-tr">
-              <span>{{ formatTargetType(row.targetType) }}</span>
-              <span class="fo-val">{{ row.value.toFixed(2) }}</span>
-            </div>
-          </div>
-          <div class="fo-table-label">距离-人员输出</div>
-          <svg class="fo-svg" :viewBox="'0 0 260 70'" preserveAspectRatio="none">
-            <polyline
-              :points="foSvgPoints(fireOutputCurve)"
-              fill="none"
-              stroke="#B88A2E"
-              stroke-width="2"
-              stroke-linejoin="round"
-              stroke-linecap="round"
-            />
-          </svg>
-          <div class="fo-axis-labels">
-            <span>0m</span>
-            <span>500m</span>
-            <span>1000m</span>
-          </div>
-        </div>
+        <!-- 火力输出 FireOutput 交互图 -->
+        <FireOutputChart :weapon="editing.weapon" />
       </div>
     </div>
 
@@ -273,40 +215,18 @@ function actionLabel(): string {
   letter-spacing: 0.3px;
 }
 
-.unit-toggle {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 6px;
+.unit-summary {
+  text-align: center;
 }
-
-.toggle-btn {
-  flex: 1;
-  padding: 6px 0;
-  border: 1px solid var(--panel-border);
-  background: var(--panel-card-soft);
-  color: var(--text-muted);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: bold;
+.unit-summary-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
 }
-
-.toggle-btn.blue.active {
-  background: var(--blue-force);
-  color: var(--text-inverse);
-  border-color: var(--blue-force);
-}
-
-.toggle-btn.red.active {
-  background: var(--red-force);
-  color: var(--text-inverse);
-  border-color: var(--red-force);
-}
-
-.profile-subtitle {
+.unit-summary-tags {
   font-size: 12px;
   color: var(--text-muted);
-  text-align: center;
+  margin-top: 2px;
 }
 
 .field-row {
@@ -459,72 +379,6 @@ function actionLabel(): string {
   color: var(--derived-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: 700;
-}
-
-.fo-section {
-  margin-top: 8px;
-}
-
-.fo-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-}
-
-.fo-table-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--derived-title);
-  margin-bottom: 4px;
-}
-
-.fo-table {
-  display: table;
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 8px;
-  font-size: 12px;
-}
-
-.fo-tr {
-  display: table-row;
-}
-
-.fo-th {
-  font-weight: 600;
-  color: var(--derived-title);
-}
-
-.fo-tr span {
-  display: table-cell;
-  padding: 2px 8px;
-  color: var(--text-muted);
-}
-
-.fo-val {
-  text-align: right;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  color: var(--derived-text) !important;
-  font-weight: 600;
-}
-
-.fo-svg {
-  display: block;
-  width: 100%;
-  height: 56px;
-  background: var(--input-bg);
-  border-radius: 4px;
-}
-
-.fo-axis-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 10px;
-  color: var(--text-dim);
-  padding: 0 4px;
 }
 
 .apply-btn {
