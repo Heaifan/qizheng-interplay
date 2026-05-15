@@ -190,11 +190,10 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       return;
     }
 
-    // browse mode: left click without drag → select unit
+    // browse mode: left click without drag → select unit (view mode, not planner)
     if (ev.button === 0 && clickStartPos && !isDragFar(screenPoint(ev).sx, screenPoint(ev).sy)) {
       const wp = worldPoint(ev);
-      const hit = game.selectPlannerByPoint(wp);
-      planningArmed.value = hit;
+      game.selectUnitByPoint(wp);
     }
 
     if (drawing.value) {
@@ -274,7 +273,8 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       planningArmed.value = game.selectPlannerByPoint(worldPoint(ev));
     },
     onDoubleClick: (ev: MouseEvent) => {
-      planningArmed.value = game.selectPlannerByPoint(worldPoint(ev));
+      ev.preventDefault();
+      game.selectUnitByPoint(worldPoint(ev));
     },
   };
 }

@@ -49,7 +49,8 @@ export const useGameStore = defineStore('game', () => {
     units, shots, logs, mode, simElapsedMs, executionState, timeline, timelineIndex,
   });
   const session = createSessionActions({
-    mode, executionState, activePlannerIdx, units, pathUndoStacks, pathRedoStacks,
+    mode, executionState, activePlannerIdx, highlightedUnitId, uiPanelTab,
+    units, pathUndoStacks, pathRedoStacks,
     shots, logs, timeline, timelineIndex, simElapsedMs, toolbarHighlight,
     takeSnapshot: tl.takeSnapshot, addLog,
   });
@@ -95,6 +96,7 @@ export const useGameStore = defineStore('game', () => {
     playbackMin, playbackMax, timelineIndex,
     initGame: session.initGame,
     selectPlannerByPoint: session.selectPlannerByPoint,
+    selectUnitByPoint: session.selectUnitByPoint,
     beginPathAt: pathEdit.beginPathAt,
     extendPathIfFarEnough: pathEdit.extendPathIfFarEnough,
     finalizePathDrawing: pathEdit.finalizePathDrawing,

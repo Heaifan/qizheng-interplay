@@ -39,11 +39,12 @@ function loadUnit(idx: number): void {
 
 watch(selectedIdx, (idx) => loadUnit(idx));
 
-watch(uiPanelTab, (tab) => {
-  if (tab === 'editor') {
-    highlightedUnitId.value = units.value[selectedIdx.value]?.id ?? null;
-  } else {
-    highlightedUnitId.value = null;
+// Sync from highlightedUnitId → selectedIdx when canvas selects a unit
+watch(highlightedUnitId, (id) => {
+  if (id === null) return;
+  const idx = units.value.findIndex((u) => u.id === id);
+  if (idx >= 0 && idx !== selectedIdx.value) {
+    selectedIdx.value = idx;
   }
 });
 
