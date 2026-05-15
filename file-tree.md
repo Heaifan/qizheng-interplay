@@ -20,13 +20,16 @@
 - 所有旧 import 路径不受影响（barrel 向后兼容）
 
 ### 修复
-- **单位选择状态解耦**：新增 `selectUnitByPoint()` 纯查看选择函数，与 `selectPlannerByPoint()` 规划选择分离
-- **双击地图单位切换右侧档案**：双击/左键点击单位可切换右侧单位档案，运行中也可查看
-- **UnitEditor 跟随 highlightedUnitId**：右侧面板通过 `highlightedUnitId` 自动同步，不再依赖独立单位选择按钮
+- **查看选择与规划选择彻底解耦**：新增 `selectUnitForInspectByPoint()` 纯查看函数，不修改 `activePlannerIdx` / `mode`
+- **`selectPlannerByPoint` 独立化**：不再内部调用 inspect，直接设置规划上下文
+- **左键/双击只当 `uiPanelTab === 'editor'` 时才切换档案**：战斗日志 tab 下点击单位不再切换右侧面板
+- **planPath 模式防误触**：左键点击敌方单位不再触发任何 select 函数，不重置路径
+- **UnitEditor 跟随 highlightedUnitId**：右侧面板通过 `highlightedUnitId` 自动同步
 
 ### 优化
-- 右键仍进入路径规划模式，左键/双击仅切换查看
-- `selectPlannerByPoint` 内部调用 `selectUnitByPoint`，执行中不拒绝选择
+- 提取 `findNearestUnit()` 共享工具函数
+- 右键单位仍然保留完整的规划路径选择功能
+- 执行中可查看单位但不进入规划
 
 ---
 
