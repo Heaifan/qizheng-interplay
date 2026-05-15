@@ -96,7 +96,7 @@ export const useGameStore = defineStore('game', () => {
     playbackMin, playbackMax, timelineIndex,
     initGame: session.initGame,
     selectPlannerByPoint: session.selectPlannerByPoint,
-    selectUnitByPoint: session.selectUnitByPoint,
+    selectUnitForInspectByPoint: session.selectUnitForInspectByPoint,
     beginPathAt: pathEdit.beginPathAt,
     extendPathIfFarEnough: pathEdit.extendPathIfFarEnough,
     finalizePathDrawing: pathEdit.finalizePathDrawing,

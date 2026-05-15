@@ -123,9 +123,11 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
       return;
     }
 
-    // browse mode: left click without drag → select unit
+    // browse mode: left click without drag → inspect unit (only when editor tab active)
     if (ev.button === 0 && clickStartPos && !isDragFar(screenPoint(ev, canvas).sx, screenPoint(ev, canvas).sy)) {
-      game.selectUnitByPoint(worldPoint(ev, canvas, game.camera));
+      if (game.uiPanelTab === 'editor') {
+        game.selectUnitForInspectByPoint(worldPoint(ev, canvas, game.camera));
+      }
     }
 
     if (drawing.value) { game.finalizePathDrawing(); drawing.value = false; }
@@ -194,7 +196,9 @@ export function useCanvasInput(canvasRef: Ref<HTMLCanvasElement | null>) {
     onDoubleClick: (ev: MouseEvent) => {
       const canvas = canvasRef.value;
       ev.preventDefault();
-      game.selectUnitByPoint(worldPoint(ev, canvas, game.camera));
+      if (game.uiPanelTab === 'editor') {
+        game.selectUnitForInspectByPoint(worldPoint(ev, canvas, game.camera));
+      }
     },
   };
 }
