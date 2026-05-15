@@ -11,17 +11,13 @@ const {
   uiPanelTab,
 } = storeToRefs(game);
 
-function onPlay() {
-  if (mode.value !== 'executing') {
-    uiPanelTab.value = 'log';
-    game.startExecution();
-  } else {
-    game.resumeExecution();
-  }
+function onTogglePlay() {
+  uiPanelTab.value = 'log';
+  game.togglePlayback();
 }
 
-function onPause() {
-  game.pauseExecution();
+function onRewind() {
+  game.rewindToStart();
 }
 
 function onScrub(ev: Event) {
@@ -32,21 +28,26 @@ function onScrub(ev: Event) {
 
 <template>
   <div class="tactical-controls player-bar">
-    <!-- 播放 -->
-    <button type="button" class="btn-player btn-play"
-      :class="{ active: toolbarHighlight === 'exec' && executionState === 'running' }"
-      title="播放 / 继续" @click="onPlay">
+    <!-- 回到开头 -->
+    <button type="button" class="btn-player btn-rewind"
+      title="回到开头" @click="onRewind">
       <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
-        <path d="M8 6L18 12L8 18V6Z" fill="currentColor"/>
+        <path d="M20 6L11.5 12L20 18V6Z" fill="currentColor"/>
+        <rect x="6" y="6" width="2.5" height="12" rx="1" fill="currentColor"/>
       </svg>
     </button>
 
-    <!-- 暂停 -->
-    <button type="button" class="btn-player btn-pause"
-      title="暂停" :disabled="mode !== 'executing'" @click="onPause">
-      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+    <!-- 播放/暂停切换 -->
+    <button type="button" class="btn-player btn-play"
+      :class="{ active: toolbarHighlight === 'exec' && executionState === 'running' }"
+      :title="executionState === 'running' ? '暂停' : '播放'"
+      @click="onTogglePlay">
+      <svg v-if="executionState === 'running'" class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
         <rect x="7" y="6" width="4" height="12" rx="1" fill="currentColor"/>
         <rect x="13" y="6" width="4" height="12" rx="1" fill="currentColor"/>
+      </svg>
+      <svg v-else class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <path d="M8 6L18 12L8 18V6Z" fill="currentColor"/>
       </svg>
     </button>
 

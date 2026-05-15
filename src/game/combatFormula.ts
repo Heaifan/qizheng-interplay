@@ -3,6 +3,7 @@ import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry'
 import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
 import { BUSHES, COVERS } from '@/domain/terrain';
 import { deriveWeaponStats } from '@/domain/weapon';
+import { calculateFireOutput } from '@/domain/fireOutput';
 import type { RuntimeUnit } from '@/domain/types';
 
 /** 直接火力上下文 — 单次射击的完整结算信息 */
@@ -88,7 +89,13 @@ export function calculateDirectFireContext(
     0.01, 0.95,
   );
 
-  const averageDamage = 22 * stats.terminalEffect * Math.sqrt(strikeModifier);
+  const fireForAve = calculateFireOutput(weapon, {
+    rangeM: distance,
+    targetType: 'personnel',
+    protectionLevel: blocked ? 'medium_cover' : 'none',
+  });
+  const BASE_DAMAGE = 24;
+  const averageDamage = BASE_DAMAGE * fireForAve.value * Math.sqrt(strikeModifier);
   const fireCooldownMs = 650 / stats.fireTempo / sustainmentModifier;
   const firePressure = hitChance * averageDamage * (1000 / fireCooldownMs);
 

@@ -1,8 +1,8 @@
-import type { EffectClass } from './types';
+import type { EffectClass, WeaponProfile } from './types';
 import {
   EFFECT_CLASS_BASE,
-  KINETIC_RANGE_FACTORS,
   PROTECTION_FACTORS,
+  getRangeFactorsByOutputMode,
   type ProtectionLevel,
   type RangeBandId,
 } from './fireOutputTables';
@@ -43,10 +43,9 @@ export interface FireOutputResult {
   explanation: string[];
 }
 
-function getRangeFactor(rangeM: number): { id: RangeBandId; factor: number } {
-  const band = KINETIC_RANGE_FACTORS.find(
-    (b) => rangeM >= b.min && rangeM < b.max,
-  );
+function getRangeFactor(rangeM: number, outputMode: string): { id: RangeBandId; factor: number } {
+  const factors = getRangeFactorsByOutputMode(outputMode);
+  const band = factors.find((b) => rangeM >= b.min && rangeM < b.max);
   return {
     id: band?.id ?? 'extreme',
     factor: band?.factor ?? 0.55,
@@ -65,10 +64,11 @@ function getTargetBase(effectClass: EffectClass, targetType: TargetType): number
 }
 
 export function calculateFireOutput(
-  effectClass: EffectClass,
+  weapon: WeaponProfile,
   context: FireOutputContext,
 ): FireOutputResult {
-  const { id: rangeBand, factor: rangeFactor } = getRangeFactor(context.rangeM);
+  const effectClass = weapon.effectClass;
+  const { id: rangeBand, factor: rangeFactor } = getRangeFactor(context.rangeM, weapon.outputMode);
   const targetBase = getTargetBase(effectClass, context.targetType);
   const protectionFactor = PROTECTION_FACTORS[context.protectionLevel];
   const deliveryModeFactor = context.deliveryModeFactor ?? 1.0;

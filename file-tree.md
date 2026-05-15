@@ -115,8 +115,8 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `movement.ts` | 沿路径推进单位，更新位置与朝向 |
-| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正（使用 `combatFormula.ts` 结算，命中后通过 `fireOutput.ts` 计算实际毁伤） |
-| `combatFormula.ts` | 直接火力战斗上下文：基于武器推导 + 单位状态 + 地形条件计算 `hitChance` / `averageDamage` / `fireCooldownMs` / `firePressure` |
+| `combat.ts` | 射击、命中、冷却、伤害与遮蔽修正（使用 `combatFormula.ts` 结算，命中后通过 `fireOutput.ts` 计算实际毁伤），统一命中/击毙日志 |
+| `combatFormula.ts` | 直接火力战斗上下文：基于武器推导 + 单位状态 + 地形条件计算 `hitChance` / `averageDamage` / `fireCooldownMs` / `firePressure`（`averageDamage` 使用 `fireOutput.ts`） |
 | `path-editing.ts` | 路径编辑流程：开始、扩展、平滑、确认、撤销、重做 |
 | `timeline.ts` | 时间轴管理：快照克隆、恢复、提交、基线持久化 |
 | `readability.ts` | 战术可读性计算：扇区、角度、距离、命中估算 |
@@ -232,6 +232,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.3.1.1.1` | 2026-05-15 | 修复 | FireOutput 语义清理 + 回放控制补丁：outputMode 分表、combatFormula 合流、播放/暂停 toggle + rewindToStart |
 | `v0.3.1.1` | 2026-05-15 | 功能 | 六力模型·打击力专题：火力输出 — EffectClass × 距离 × 防护 × 投送方式推导命中毁伤 |
 | `v0.2.4.3.3` | 2026-05-15 | 修复 | 工具栏事件隔离 + 测距性能修复：RAF 节流 + 模式切换清理 |
 | `v0.2.4.3.2` | 2026-05-15 | 修复 | 单位图标锁定 + 规划模式路径修复 + Electron 重启守卫 |

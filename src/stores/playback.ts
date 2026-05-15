@@ -56,5 +56,13 @@ export function createPlaybackActions(d: PlaybackDeps) {
     d.toolbarHighlight.value = 'exec';
   }
 
-  return { stepBackward, stepForward, seekTimeline };
+  function rewindToStart(): void {
+    if (d.timeline.value.length === 0) return;
+    d.timelineIndex.value = 0;
+    d.restoreFrame(d.timeline.value[0]!);
+    d.executionState.value = 'paused';
+    d.toolbarHighlight.value = 'exec';
+  }
+
+  return { stepBackward, stepForward, seekTimeline, rewindToStart };
 }

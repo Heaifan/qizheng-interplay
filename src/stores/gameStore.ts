@@ -106,6 +106,16 @@ export const useGameStore = defineStore('game', () => {
     stepBackward: playback.stepBackward,
     stepForward: playback.stepForward,
     seekTimeline: playback.seekTimeline,
+    rewindToStart: playback.rewindToStart,
+    togglePlayback: () => {
+      if (mode.value !== 'executing') {
+        exec.startExecution();
+      } else if (executionState.value === 'running') {
+        exec.pauseExecution();
+      } else {
+        exec.resumeExecution();
+      }
+    },
     resetSandbox: session.initGame,
     tick: exec.tick,
   };

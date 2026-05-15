@@ -59,13 +59,15 @@ export function createCombatActions(d: CombatDeps) {
       `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
 
     const fireOutput = calculateFireOutput(
-      attacker.combatProfile.weapon.effectClass,
+      attacker.combatProfile.weapon,
       {
         rangeM: ctx.distance,
         targetType: 'personnel',
         protectionLevel: ctx.blocked ? 'medium_cover' : 'none',
       },
     );
+
+    const foTag = `FO ${fireOutput.value.toFixed(2)}/${fireOutput.effectClass}/${fireOutput.rangeBand}/${fireOutput.protectionLevel}`;
 
     const hit = Math.random() < ctx.hitChance;
     if (hit) {
@@ -75,17 +77,11 @@ export function createCombatActions(d: CombatDeps) {
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;
-        d.addLog(attacker.id, `击毙 ${target.id}`, 'log-kill');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害，击毙`, 'log-kill');
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        const foParts = [
-          `FO ${fireOutput.value.toFixed(2)}`,
-          fireOutput.effectClass,
-          fireOutput.rangeBand,
-          fireOutput.protectionLevel,
-        ].join('/');
-        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foParts}｜命中，造成 ${damage} 伤害`, 'log-hit');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害`, 'log-hit');
       }
     } else {
       d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中`, 'log-miss');

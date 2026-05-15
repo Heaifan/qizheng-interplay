@@ -1,6 +1,6 @@
 {
   "name": "qi-zheng-interplay",
-  "version": "0.3.1.1",
+  "version": "0.3.1.1.1",
   "private": true,
   "type": "module",
   "description": "硬核战术规划模拟器 — Vue3 + Electron",
