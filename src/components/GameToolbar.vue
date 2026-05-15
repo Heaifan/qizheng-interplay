@@ -28,16 +28,7 @@ function onScrub(ev: Event) {
 
 <template>
   <div class="tactical-controls player-bar">
-    <!-- 回到开头 -->
-    <button type="button" class="btn-player btn-rewind"
-      title="回到开头" @click="onRewind">
-      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
-        <path d="M20 6L11.5 12L20 18V6Z" fill="currentColor"/>
-        <rect x="6" y="6" width="2.5" height="12" rx="1" fill="currentColor"/>
-      </svg>
-    </button>
-
-    <!-- 播放/暂停切换 -->
+    <!-- 播放/暂停切换（首位） -->
     <button type="button" class="btn-player btn-play"
       :class="{ active: toolbarHighlight === 'exec' && executionState === 'running' }"
       :title="executionState === 'running' ? '暂停' : '播放'"
@@ -48,6 +39,15 @@ function onScrub(ev: Event) {
       </svg>
       <svg v-else class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
         <path d="M8 6L18 12L8 18V6Z" fill="currentColor"/>
+      </svg>
+    </button>
+
+    <!-- 回到开头 -->
+    <button type="button" class="btn-player btn-rewind"
+      title="回到开头" @click="onRewind">
+      <svg class="toolbar-icon icon-lg" viewBox="0 0 24 24" fill="none">
+        <path d="M20 6L11.5 12L20 18V6Z" fill="currentColor"/>
+        <rect x="6" y="6" width="2.5" height="12" rx="1" fill="currentColor"/>
       </svg>
     </button>
 

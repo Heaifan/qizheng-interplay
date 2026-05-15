@@ -16,7 +16,7 @@ export function generateFireOutputCurve(
   targetType: TargetType = 'personnel',
   protectionLevel: ProtectionLevel = 'none',
 ): FireOutputCurvePoint[] {
-  const ranges = [0, 25, 50, 100, 150, 200, 300, 400, 500, 700, 1000];
+  const ranges = [0, 49, 50, 149, 150, 299, 300, 499, 500, 700, 1000];
 
   return ranges.map((rangeM) => {
     const result = calculateFireOutput(weapon, { rangeM, targetType, protectionLevel });

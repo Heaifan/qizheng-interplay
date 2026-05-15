@@ -38,9 +38,18 @@ function xToRange(lx: number) {
   return Math.round(Math.max(0, Math.min(1, (lx - PAD_L) / plotW())) * 1000);
 }
 
-const polylinePoints = computed(() =>
-  curve.value.map((p) => `${rangeToX(p.rangeM)},${valueToY(p.value)}`).join(' '),
-);
+function buildStepPath(points: { rangeM: number; value: number }[]): string {
+  const sorted = [...points].sort((a, b) => a.rangeM - b.rangeM);
+  if (sorted.length === 0) return '';
+  let d = `M ${rangeToX(sorted[0].rangeM)} ${valueToY(sorted[0].value)}`;
+  for (let i = 1; i < sorted.length; i++) {
+    d += ` H ${rangeToX(sorted[i].rangeM)}`;
+    d += ` V ${valueToY(sorted[i].value)}`;
+  }
+  return d;
+}
+
+const stepPath = computed(() => buildStepPath(curve.value));
 
 const probeResult = computed(() =>
   calculateFireOutput(props.weapon, { rangeM: probeRangeM.value, targetType: 'personnel', protectionLevel: 'none' }),
@@ -112,8 +121,8 @@ function unlock() { locked.value = false; }
       <text :x="W - PAD_R" :y="H - 4" text-anchor="end" class="fo-ax-label">1000m</text>
       <!-- y hint -->
       <text :x="PAD_L - 4" :y="PAD_T + 4" text-anchor="end" class="fo-ax-label">输出</text>
-      <!-- curve -->
-      <polyline :points="polylinePoints" class="fo-curve" />
+      <!-- curve (step path matching range bands) -->
+      <path :d="stepPath" class="fo-curve" />
       <!-- probe -->
       <line :x1="probeX" :y1="PAD_T" :x2="probeX" :y2="H - PAD_B" class="fo-probe-ln" />
       <circle :cx="probeX" :cy="probeY" r="4" class="fo-probe-dot" />
