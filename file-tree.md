@@ -13,6 +13,12 @@
 
 > 发布日期：2026-05-15
 
+### 重构
+- **types.ts 拆分为 2 + 1**：`type_weapon.ts`（武器类型）、`type_core.ts`（核心类型）、`types.ts` 降为 barrel
+- **fireOutputTables.ts 拆分为 2 + 1**：`data_effectClassBase.ts`（毁伤表）、`data_rangeProtection.ts`（距离/防护系数）、`fireOutputTables.ts` 降为 barrel
+- **useCanvasInput.ts 拆分**：提取 `hook_canvasUtils.ts`（坐标转换、平移、RAF 节流工具）
+- 所有旧 import 路径不受影响（barrel 向后兼容）
+
 ### 修复
 - **单位选择状态解耦**：新增 `selectUnitByPoint()` 纯查看选择函数，与 `selectPlannerByPoint()` 规划选择分离
 - **双击地图单位切换右侧档案**：双击/左键点击单位可切换右侧单位档案，运行中也可查看
@@ -132,12 +138,18 @@ src/
 
 | 文件 | 职责 |
 | --- | --- |
-| `types.ts` | 全部核心 TypeScript 类型：`RuntimeUnit`、`WeaponProfile`、`CombatProfile` 等 |
+| `types.ts` | **Barrel** — re-export from `type_weapon.ts` + `type_core.ts` |
+| `type_core.ts` | 核心类型：`GameMode`、`RuntimeUnit`、`CombatProfile`、`ShotTrail`、`LogEntry` 等 |
+| `type_weapon.ts` | 武器类型：`WeaponProfile`、`WeaponFamily`、`OutputMode`、`EffectClass` 等 |
 | `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
 | `weapon.ts` | **武器基础推导唯一来源**：`weaponAccuracy` / `effectiveRange` / `terminalEffect` / `fireTempo` / `directFireContribution` |
-| `fireOutput.ts` | 火力输出模型：`TargetType`、`FireOutputContext`、`calculateFireOutput` — EffectClass × 距离 × 防护 × 投送方式 |
-| `fireOutputTables.ts` | 火力输出系数表：`EFFECT_CLASS_BASE`、`KINETIC_RANGE_FACTORS`、`PROTECTION_FACTORS` |
+| `fireOutput.ts` | 火力输出模型：`calculateFireOutput` — EffectClass × 距离 × 防护 × 投送方式 |
+| `fireOutputTables.ts` | **Barrel** — re-export from `data_effectClassBase.ts` + `data_rangeProtection.ts` |
+| `data_effectClassBase.ts` | 34 种 EffectClass × 5 种目标类型的基准毁伤表 |
+| `data_rangeProtection.ts` | 距离衰减系数表 + 防护系数表 + `getRangeFactorsByOutputMode()` |
+| `fireOutputCurve.ts` | 曲线数据生成：`generateFireOutputCurve()`、`generateFireOutputTargetTable()` |
+| `fireOutputFormat.ts` | 中文格式化：`formatFireOutputTag()`、`formatEffectClass()`、`formatRangeBand()` 等 |
 | `helpers.ts` | 通用工具：`clamp` |
 | `camera.ts` | 战场相机：`CameraState`、`screenToWorld` / `worldToScreen`、`zoomAtScreenPoint`，1 world unit = 1 米 |
 | `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
@@ -196,7 +208,8 @@ src/
 
 | 文件 | 职责 |
 | --- | --- |
-| `useCanvasInput.ts` | 鼠标输入处理：坐标转换、按下、移动、抬起、右键、双击 |
+| `useCanvasInput.ts` | 鼠标/指针输入 composable：按下、移动、抬起、右键、双击、滚轮，事件优先级编排 |
+| `hook_canvasUtils.ts` | Canvas 输入工具函数：坐标转换、平移、拖拽检测、RAF 节流测距更新 |
 | `useCanvasTouch.ts` | 触摸输入处理：拖动、结束、双击检测 |
 | `useAnimationLoop.ts` | `requestAnimationFrame` 循环，负责 tick 与渲染调用 |
 
