@@ -99,10 +99,13 @@ export function drawUnits(
       ctx.stroke();
     }
 
-    // weapon glyph (rotated with facing direction)
+    // weapon glyph rotated with facing direction (screen-stable size)
+    ctx.save();
     ctx.rotate(u.angle);
+    ctx.scale(1 / z, 1 / z);
     const glyphKind = resolveUnitGlyphKind(u);
-    drawUnitGlyph(ctx, glyphKind, 0.9 / z);
+    drawUnitGlyph(ctx, glyphKind);
+    ctx.restore();
 
     ctx.restore();
 

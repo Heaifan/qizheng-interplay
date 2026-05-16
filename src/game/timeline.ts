@@ -33,6 +33,7 @@ export function createTimelineActions(d: TimelineDeps) {
         ...u,
         path: u.path.map((p) => ({ ...p })),
         combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
+        weaponState: { ...u.weaponState },
       })),
       shots: shots.map((s) => ({ ...s })),
       logs: logs.map((l) => ({ ...l })),
@@ -53,6 +54,7 @@ export function createTimelineActions(d: TimelineDeps) {
       ...u,
       path: u.path.map((p) => ({ ...p })),
       combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
+      weaponState: { ...u.weaponState },
     }));
     d.shots.value = frame.shots.map((s) => ({ ...s }));
     d.logs.value = frame.logs.map((l) => ({ ...l }));

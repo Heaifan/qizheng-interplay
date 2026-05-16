@@ -4,6 +4,7 @@ import { calculateDirectFireContext } from './combatFormula';
 import { calculateFireOutput } from '@/domain/fireOutput';
 import { formatFireOutputTag } from '@/domain/fireOutputFormat';
 import { getWeaponById } from '@/domain/weaponCatalog';
+import { tryConsumeShot } from './weaponRuntime';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
@@ -27,16 +28,29 @@ export function createCombatActions(d: CombatDeps) {
   function tryFire(attacker: RuntimeUnit, target: RuntimeUnit, now: number): void {
     if (attacker.dead || target.dead) return;
 
+    // Ammo/reload/cooldown check via weaponRuntime
+    const cycle = tryConsumeShot(attacker, now);
+    if (!cycle.canFire) {
+      if (cycle.reason === 'reloading') return;
+      if (cycle.reason === 'cooldown') return;
+      if (cycle.reason === 'start_reload') {
+        const weapon = getWeaponById(attacker.weaponId);
+        d.addLog(attacker.id, `${weapon?.displayName ?? '武器'} 开始装填（${((weapon?.reloadTimeMs ?? 3000) / 1000).toFixed(1)}s）`, 'log-system');
+        return;
+      }
+      return;
+    }
+
     const ctx = calculateDirectFireContext(attacker, target);
     if (!ctx.inRange || !ctx.inFireArc) return;
-    if (now - attacker.lastFireTime < ctx.fireCooldownMs) return;
 
     const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
     attacker.angle = targetBearing;
+    attacker.aimAngle = targetBearing;
     attacker.fireAngle = targetBearing;
     const threatBearing = bearingBetween(target.x, target.y, attacker.x, attacker.y);
     target.angle = threatBearing;
-    attacker.lastFireTime = now;
+    target.aimAngle = threatBearing;
 
     d.shots.value.push({
       x1: attacker.x, y1: attacker.y,
@@ -45,14 +59,19 @@ export function createCombatActions(d: CombatDeps) {
     });
 
     const fireWeapon = getWeaponById(attacker.weaponId) ?? attacker.combatProfile.weapon;
+    const state = attacker.weaponState;
 
     const modParts: string[] = [];
     if (ctx.blocked) modParts.push('遮挡');
     if (ctx.throughBush) modParts.push('灌木');
     const modStr = modParts.length ? `｜${modParts.join('/')}` : '';
 
+    const rounds = cycle.rounds ?? 1;
+    const roundsStr = rounds > 1 ? `｜点射${rounds}发` : '';
+    const ammoStr = state ? `｜弹仓 ${state.ammoInMagazine}/${fireWeapon.magazineSize ?? '?'}` : '';
+
     const logBase =
-      `${fireWeapon.name} 开火` +
+      `${fireWeapon.name} 开火${roundsStr}${ammoStr}` +
       `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
       `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
       `｜距离×${ctx.distanceModifier.toFixed(2)}` +
@@ -61,14 +80,12 @@ export function createCombatActions(d: CombatDeps) {
       `${modStr}` +
       `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
       `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
-    const fireOutput = calculateFireOutput(
-      fireWeapon,
-      {
-        rangeM: ctx.distance,
-        targetType: 'personnel',
-        protectionLevel: ctx.blocked ? 'medium_cover' : 'none',
-      },
-    );
+
+    const fireOutput = calculateFireOutput(fireWeapon, {
+      rangeM: ctx.distance,
+      targetType: 'personnel',
+      protectionLevel: ctx.blocked ? 'medium_cover' : 'none',
+    });
 
     const foTag = formatFireOutputTag(fireOutput.value, fireOutput.outputProfileLabel, fireOutput.rangeBand, fireOutput.protectionLevel);
 
@@ -76,7 +93,7 @@ export function createCombatActions(d: CombatDeps) {
     if (hit) {
       const baseDamage = 24;
       const randomSwing = 0.85 + Math.random() * 0.3;
-      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing));
+      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing * Math.sqrt(rounds)));
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;

@@ -53,6 +53,18 @@ export interface WeaponProfile {
   roleLabel?: string;
   iconKind?: WeaponIconKind;
   tags?: string[];
+  /** 弹匣容量 */
+  magazineSize?: number;
+  /** 射击间隔（ms） */
+  shotIntervalMs?: number;
+  /** 换弹时间（ms） */
+  reloadTimeMs?: number;
+  /** 射击模式 */
+  fireMode?: 'single' | 'semi' | 'auto' | 'burst';
+  /** 点射发数（仅 auto/burst） */
+  burstSize?: number;
+  /** 点射内子弹间隔（ms） */
+  burstIntervalMs?: number;
 }
 
 export interface WeaponDerivedStats {

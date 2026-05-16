@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.4.1.1
+> **当前版本：** v0.4.1.2
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-16 17:02
 
@@ -9,7 +9,28 @@
 
 ---
 
-## 当前版本更新日志 — v0.4.1.1
+## 当前版本更新日志 — v0.4.1.2
+
+> 发布日期：2026-05-16
+> Release：[v0.4.1.2](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.2)
+
+### 修复
+- **兵牌图标方向修复**：所有 glyph 路径重写，枪口统一朝 +X 方向，配合 aimAngle 指向射击目标
+- **冲锋枪/机枪图标重绘**：SMG 不再像 H，MG 不再糊成黑块
+- **图标缩放稳定**：glyph 绘制加入 `ctx.scale(1/zoom)`，缩放地图时图标大小保持稳定
+- **新增 aimAngle**：RuntimeUnit 增加 aimAngle 字段，开火时更新，glyph 旋转使用 aimAngle
+
+### 新增
+- **武器射击循环系统**：弹匣容量 / 射击间隔 / 换弹时间 / 射击模式
+- **`weaponRuntime.ts`**：`tryConsumeShot()` 弹药消耗与冷却统一管理
+- **`WeaponRuntimeState`**：运行时弹量、换弹、冷却状态记录
+- 战斗日志显示弹量（`弹仓 4/5`）和点射发数（`点射3发`）
+- 自动武器按 burst 消耗弹药，换弹期间不产生射击线
+- 时间轴快照深度克隆 weaponState，回放弹量正确恢复
+
+---
+
+## 前版更新日志 — v0.4.1.1
 
 > 发布日期：2026-05-16
 > Release：[v0.4.1.1](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.1)

@@ -11,13 +11,23 @@
     "action": "bolt",
     "caliber": 7.92,
     "barrelLength": 600,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_single",
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "步枪手",
     "iconKind": "rifle",
-    "tags": ["direct_fire", "bolt_action", "rifle", "germany", "ww2"]
+    "tags": [
+      "direct_fire",
+      "bolt_action",
+      "rifle",
+      "germany",
+      "ww2"
+    ],
+    "magazineSize": 5,
+    "shotIntervalMs": 1600,
+    "reloadTimeMs": 4200,
+    "fireMode": "single"
   },
   {
     "id": "m91-30",
@@ -31,13 +41,23 @@
     "action": "bolt",
     "caliber": 7.62,
     "barrelLength": 730,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_single",
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "步枪手",
     "iconKind": "rifle",
-    "tags": ["direct_fire", "bolt_action", "rifle", "ussr", "ww2"]
+    "tags": [
+      "direct_fire",
+      "bolt_action",
+      "rifle",
+      "ussr",
+      "ww2"
+    ],
+    "magazineSize": 5,
+    "shotIntervalMs": 1700,
+    "reloadTimeMs": 4300,
+    "fireMode": "single"
   },
   {
     "id": "type-38",
@@ -51,13 +71,23 @@
     "action": "bolt",
     "caliber": 6.5,
     "barrelLength": 797,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_single",
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "步枪手",
     "iconKind": "rifle",
-    "tags": ["direct_fire", "bolt_action", "rifle", "japan", "ww2"]
+    "tags": [
+      "direct_fire",
+      "bolt_action",
+      "rifle",
+      "japan",
+      "ww2"
+    ],
+    "magazineSize": 5,
+    "shotIntervalMs": 1600,
+    "reloadTimeMs": 4000,
+    "fireMode": "single"
   },
   {
     "id": "m1-garand",
@@ -71,13 +101,23 @@
     "action": "semi",
     "caliber": 7.62,
     "barrelLength": 610,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_single",
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "半自动步枪手",
     "iconKind": "rifle_bar",
-    "tags": ["direct_fire", "semi_auto", "rifle", "usa", "ww2"]
+    "tags": [
+      "direct_fire",
+      "semi_auto",
+      "rifle",
+      "usa",
+      "ww2"
+    ],
+    "magazineSize": 8,
+    "shotIntervalMs": 650,
+    "reloadTimeMs": 2600,
+    "fireMode": "semi"
   },
   {
     "id": "mp40",
@@ -91,13 +131,25 @@
     "action": "auto",
     "caliber": 9,
     "barrelLength": 251,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_auto",
     "effectClass": "submachinegun_round",
     "outputProfileId": "smg_direct",
     "roleLabel": "冲锋枪手",
     "iconKind": "smg",
-    "tags": ["direct_fire", "auto", "smg", "germany", "ww2"]
+    "tags": [
+      "direct_fire",
+      "auto",
+      "smg",
+      "germany",
+      "ww2"
+    ],
+    "magazineSize": 32,
+    "shotIntervalMs": 130,
+    "reloadTimeMs": 3000,
+    "fireMode": "auto",
+    "burstSize": 3,
+    "burstIntervalMs": 90
   },
   {
     "id": "ppsh-41",
@@ -111,13 +163,25 @@
     "action": "auto",
     "caliber": 7.62,
     "barrelLength": 269,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_auto",
     "effectClass": "submachinegun_round",
     "outputProfileId": "smg_direct",
     "roleLabel": "冲锋枪手",
     "iconKind": "smg",
-    "tags": ["direct_fire", "auto", "smg", "ussr", "ww2"]
+    "tags": [
+      "direct_fire",
+      "auto",
+      "smg",
+      "ussr",
+      "ww2"
+    ],
+    "magazineSize": 71,
+    "shotIntervalMs": 110,
+    "reloadTimeMs": 3200,
+    "fireMode": "auto",
+    "burstSize": 4,
+    "burstIntervalMs": 85
   },
   {
     "id": "mg34",
@@ -137,7 +201,19 @@
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "机枪手",
     "iconKind": "machine_gun",
-    "tags": ["direct_fire", "auto", "machine_gun", "germany", "ww2"]
+    "tags": [
+      "direct_fire",
+      "auto",
+      "machine_gun",
+      "germany",
+      "ww2"
+    ],
+    "magazineSize": 50,
+    "shotIntervalMs": 85,
+    "reloadTimeMs": 4500,
+    "fireMode": "auto",
+    "burstSize": 5,
+    "burstIntervalMs": 80
   },
   {
     "id": "zb26",
@@ -151,12 +227,24 @@
     "action": "auto",
     "caliber": 7.92,
     "barrelLength": 672,
-    "sightMag": 1.0,
+    "sightMag": 1,
     "outputMode": "kinetic_auto",
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "机枪手",
     "iconKind": "machine_gun",
-    "tags": ["direct_fire", "auto", "machine_gun", "czech", "ww2"]
+    "tags": [
+      "direct_fire",
+      "auto",
+      "machine_gun",
+      "czech",
+      "ww2"
+    ],
+    "magazineSize": 20,
+    "shotIntervalMs": 100,
+    "reloadTimeMs": 3500,
+    "fireMode": "auto",
+    "burstSize": 4,
+    "burstIntervalMs": 90
   }
 ]

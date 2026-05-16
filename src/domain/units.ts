@@ -1,5 +1,6 @@
 import type { CombatProfile, RuntimeUnit, UnitTemplate } from './types';
 import { getWeaponById } from './weaponCatalog';
+import { createWeaponRuntimeState } from '@/game/weaponRuntime';
 
 export const UNIT_TEMPLATES: readonly UnitTemplate[] = [
   {
@@ -84,12 +85,14 @@ export function createRuntimeUnitsFromTemplates(templates: readonly UnitTemplate
       path: [],
       currentPathIdx: 0,
       angle: t.type === 'circle' ? 0 : Math.PI,
+      aimAngle: t.type === 'circle' ? 0 : Math.PI,
       fireAngle: t.type === 'circle' ? 0 : Math.PI,
       lastFireTime: 0,
       weaponId: profile.weapon.id,
       maxSpeedKmh: 6,
       currentSpeedKmh: 0,
       formationType: 'single',
+      weaponState: createWeaponRuntimeState(profile.weapon.id),
       combatProfile: structuredClone(profile),
     };
   });

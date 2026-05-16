@@ -51,8 +51,12 @@ export interface RuntimeUnit extends UnitTemplate {
   currentSpeedKmh: number;
   /** 编制类型 */
   formationType: FormationType;
+  /** 武器运行时状态 */
+  weaponState: WeaponRuntimeState;
   /** Tactical facing direction: icon arrow, perception/fire/control sector center */
   angle: number;
+  /** Weapon aim direction (glyph barrel points this way), updated on fire */
+  aimAngle: number;
   /** Last actual shot direction, used for debug/trail reference only */
   fireAngle: number;
   lastFireTime: number;
@@ -62,6 +66,16 @@ export interface RuntimeUnit extends UnitTemplate {
 export interface ShotTrail {
   x1: number; y1: number; x2: number; y2: number;
   color: string; alpha: number; blocked: boolean;
+}
+
+/** 武器运行时状态（弹量、换弹、射击间隔） */
+export interface WeaponRuntimeState {
+  weaponId: string;
+  ammoInMagazine: number;
+  reserveAmmo: number;
+  isReloading: boolean;
+  reloadFinishAtMs: number;
+  nextShotAtMs: number;
 }
 
 export interface CasualtyPoint {
