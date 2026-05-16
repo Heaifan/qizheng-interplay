@@ -10,9 +10,9 @@ const props = defineProps<{
 const W = 280;
 const H = 110;
 const M_T = 4;
-const M_R = 8;
+const M_R = 4;
 const M_B = 14;
-const M_L = 26;
+const M_L = 20;
 
 const svgRef = ref<SVGSVGElement | null>(null);
 
