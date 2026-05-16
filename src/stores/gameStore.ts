@@ -11,6 +11,7 @@ import { createSessionActions } from './session';
 import { createExecutionActions } from './execution';
 import { createPlaybackActions } from './playback';
 import { createDerivedState } from './derived';
+import { buildCasualtySeries, computeInitialHpTotals } from '@/game/casualtyStats';
 
 export const useGameStore = defineStore('game', () => {
   type ExecutionState = 'stopped' | 'running' | 'paused';
@@ -93,11 +94,20 @@ export const useGameStore = defineStore('game', () => {
     logs.value.filter((l) => l.timeMs <= simElapsedMs.value),
   );
 
+  /** 战损统计序列：从 timeline 帧生成 */
+  const casualtySeries = computed(() => {
+    const frames = timeline.value;
+    if (frames.length === 0) return [];
+    const initialHp = computeInitialHpTotals(frames[0]!.units);
+    return buildCasualtySeries(frames, initialHp);
+  });
+
   session.initGame();
 
   return {
     visibleLogs,
-    mode, executionState, units, shots, logs, toolbarHighlight,
+    casualtySeries,
+    mode, executionState, units, shots, logs, simElapsedMs, toolbarHighlight,
     highlightedUnitId, uiPanelTab, camera, interactionMode, ruler,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,

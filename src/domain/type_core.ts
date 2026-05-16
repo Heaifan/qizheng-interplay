@@ -64,6 +64,16 @@ export interface ShotTrail {
   color: string; alpha: number; blocked: boolean;
 }
 
+export interface CasualtyPoint {
+  timeSec: number;
+  redHpValue: number;
+  blueHpValue: number;
+  redHpPct: number;
+  blueHpPct: number;
+  redLoss: number;
+  blueLoss: number;
+}
+
 export interface LogEntry {
   timeLabel: string;
   /** 仿真时间（ms），用于按时间过滤 */

@@ -3,9 +3,10 @@ import { storeToRefs } from 'pinia';
 import { useTemplateRef, watch, nextTick } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
 import UnitEditor from './UnitEditor.vue';
+import CasualtyChart from './CasualtyChart.vue';
 
 const game = useGameStore();
-const { logs, visibleLogs, uiPanelTab, highlightedUnitId } = storeToRefs(game);
+const { logs, visibleLogs, uiPanelTab, highlightedUnitId, casualtySeries, simElapsedMs } = storeToRefs(game);
 const scrollRoot = useTemplateRef('scrollRoot');
 
 watch(
@@ -65,7 +66,7 @@ function entryRowClass(tone: string): string {
         单位档案
       </button>
     </div>
-    <div v-show="uiPanelTab === 'log'" ref="scrollRoot" class="log-content">
+    <div v-show="uiPanelTab === 'log'" ref="scrollRoot" class="log-content" style="flex:1;overflow-y:auto">
       <div v-for="(entry, i) in visibleLogs" :key="i" :class="entryRowClass(entry.tone)">
         <span class="log-time">[{{ entry.timeLabel }}]</span><span class="log-tag">{{ eventTag(entry.tone) }}</span>
         <strong v-if="entry.unitId !== '系统'" :class="sideClass(entry.unitId)">{{ entry.unitId }}</strong>
@@ -73,6 +74,10 @@ function entryRowClass(tone: string): string {
       </div>
     </div>
     <UnitEditor v-show="uiPanelTab === 'editor'" />
+    <CasualtyChart
+      :series="casualtySeries"
+      :current-time-sec="Math.floor(simElapsedMs / 1000)"
+    />
   </aside>
 </template>
 

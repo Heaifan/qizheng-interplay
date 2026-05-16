@@ -1,0 +1,49 @@
+import type { CasualtyPoint, RuntimeUnit } from '@/domain/types';
+import type { TimelineFrame } from './timeline';
+
+export interface HpTotals {
+  red: number;
+  blue: number;
+}
+
+/** 计算初始 HP 总和 */
+export function computeInitialHpTotals(units: readonly RuntimeUnit[]): HpTotals {
+  let red = 0;
+  let blue = 0;
+  for (const u of units) {
+    if (u.combatProfile.faction === 'red') red += u.hp;
+    else blue += u.hp;
+  }
+  return { red, blue };
+}
+
+/** 从帧的单位列表计算当前 HP */
+function sumHpByFaction(units: readonly RuntimeUnit[]): { red: number; blue: number } {
+  let red = 0;
+  let blue = 0;
+  for (const u of units) {
+    if (u.combatProfile.faction === 'red') red += u.hp;
+    else blue += u.hp;
+  }
+  return { red, blue };
+}
+
+/** 从 timeline 帧序列生成战损统计点 */
+export function buildCasualtySeries(
+  frames: readonly TimelineFrame[],
+  initial: HpTotals,
+): CasualtyPoint[] {
+  return frames.map((frame, idx) => {
+    const { red: redHp, blue: blueHp } = sumHpByFaction(frame.units);
+    const timeSec = idx === 0 ? 0 : Math.round(frame.simElapsedMs / 1000);
+    return {
+      timeSec,
+      redHpValue: redHp,
+      blueHpValue: blueHp,
+      redHpPct: initial.red > 0 ? (redHp / initial.red) * 100 : 100,
+      blueHpPct: initial.blue > 0 ? (blueHp / initial.blue) * 100 : 100,
+      redLoss: initial.red - redHp,
+      blueLoss: initial.blue - blueHp,
+    };
+  });
+}
