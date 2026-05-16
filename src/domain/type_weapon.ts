@@ -44,6 +44,8 @@ export interface WeaponProfile {
   outputMode: OutputMode;
   /** 效果等级（决定对不同目标类型的基准毁伤） */
   effectClass: EffectClass;
+  /** 武器输出档案 ID（优先于 effectClass + outputMode） */
+  outputProfileId?: string;
 }
 
 export interface WeaponDerivedStats {

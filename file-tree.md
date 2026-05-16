@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.3.1.1.5
+> **当前版本：** v0.3.1.1.6
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-15 11:27
 
@@ -9,9 +9,26 @@
 
 ---
 
-## 当前版本更新日志 — v0.3.1.1.5
+## 当前版本更新日志 — v0.3.1.1.6
 
 > 发布日期：2026-05-15
+
+### 重构
+- **FireOutput 输出档案模型**：新增 `WeaponOutputProfile` 概念，运行时输入简化为武器 + 目标 + 距离 + 防护
+- **`weaponOutputProfiles.ts`**：输出档案表、距离模型表、`resolveWeaponOutputProfile()` 解析器（优先 outputProfileId，fallback 旧字段）
+- **`full_power_rifle_direct` 输出档案**：Kar98k / M91/30 绑定该档案，数值与旧版一致
+
+### 新增
+- `FireOutputResult` 增加 `outputProfileId`、`outputProfileLabel`、`outputProfileDescription`
+- `WeaponProfile` 新增可选字段 `outputProfileId`
+
+### 优化
+- 战斗日志和 FireOutput 图表显示「全威力步枪弹直射」替代旧 effectClass/outputMode
+- 旧字段 `family` / `outputMode` / `effectClass` 保留为兼容 fallback
+
+---
+
+## 前版更新日志 — v0.3.1.1.5
 
 ### 重构
 - **types.ts 拆分为 2 + 1**：`type_weapon.ts`（武器类型）、`type_core.ts`（核心类型）、`types.ts` 降为 barrel
@@ -288,6 +305,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.3.1.1.6` | 2026-05-15 | 重构 | FireOutput 输出档案重构：WeaponOutputProfile 模型、`resolveWeaponOutputProfile` 解析器、Kar98k/M91/30 绑定 full_power_rifle_direct |
 | `v0.3.1.1.5` | 2026-05-15 | 修复 | 单位选择状态解耦：`selectUnitByPoint` 纯查看 + 双击切换右侧档案 + 运行中可查看 |
 | `v0.3.1.1.4` | 2026-05-15 | 修复 | FireOutput 图表阶梯线修复 + 播放/暂停按钮前置：step path 对齐、采样点边界化、工具栏顺序调整 |
 | `v0.3.1.1.3` | 2026-05-15 | 功能 | FireOutput 交互分析优化：交互 SVG 探针曲线 + 单位选择器删除 + 当前单位摘要 + 目标输出表联动 |

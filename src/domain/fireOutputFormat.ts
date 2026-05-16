@@ -80,9 +80,9 @@ export function formatTargetType(tt: string): string {
 /** 简洁日志格式：火力输出0.75｜全威力步枪弹｜远距｜无防护 */
 export function formatFireOutputTag(
   value: number,
-  effectClass: EffectClass,
+  profileLabel: string,
   rangeBand: RangeBandId,
   protectionLevel: ProtectionLevel,
 ): string {
-  return `火力输出${value.toFixed(2)}｜${formatEffectClass(effectClass)}｜${formatRangeBand(rangeBand)}｜${formatProtectionLevel(protectionLevel)}`;
+  return `火力输出${value.toFixed(2)}｜${profileLabel}｜${formatRangeBand(rangeBand)}｜${formatProtectionLevel(protectionLevel)}`;
 }

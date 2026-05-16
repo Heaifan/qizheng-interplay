@@ -1,11 +1,14 @@
-import type { EffectClass, WeaponProfile } from './types';
+import type { WeaponProfile } from './types';
 import {
-  EFFECT_CLASS_BASE,
   PROTECTION_FACTORS,
-  getRangeFactorsByOutputMode,
   type ProtectionLevel,
   type RangeBandId,
 } from './fireOutputTables';
+import {
+  resolveWeaponOutputProfile,
+  getRangeFactor,
+  type WeaponOutputProfile,
+} from './weaponOutputProfiles';
 
 export type { ProtectionLevel, RangeBandId };
 
@@ -37,29 +40,23 @@ export interface FireOutputResult {
   rangeFactor: number;
   protectionFactor: number;
   deliveryModeFactor: number;
-  effectClass: EffectClass;
+  effectClass: string;
   rangeBand: RangeBandId;
   protectionLevel: ProtectionLevel;
+  outputProfileId: string;
+  outputProfileLabel: string;
+  outputProfileDescription: string;
   explanation: string[];
 }
 
-function getRangeFactor(rangeM: number, outputMode: string): { id: RangeBandId; factor: number } {
-  const factors = getRangeFactorsByOutputMode(outputMode);
-  const band = factors.find((b) => rangeM >= b.min && rangeM < b.max);
-  return {
-    id: band?.id ?? 'extreme',
-    factor: band?.factor ?? 0.55,
-  };
-}
-
-function getTargetBase(effectClass: EffectClass, targetType: TargetType): number {
-  const vector = EFFECT_CLASS_BASE[effectClass];
+function getTargetBase(profile: WeaponOutputProfile, targetType: TargetType): number {
+  const v = profile.targetBase;
   switch (targetType) {
-    case 'personnel': return vector.personnel;
-    case 'light_vehicle': return vector.lightVehicle;
-    case 'armor': return vector.armor;
-    case 'structure': return vector.structure;
-    case 'obstacle': return vector.obstacle;
+    case 'personnel': return v.personnel;
+    case 'light_vehicle': return v.lightVehicle;
+    case 'armor': return v.armor;
+    case 'structure': return v.structure;
+    case 'obstacle': return v.obstacle;
   }
 }
 
@@ -67,12 +64,11 @@ export function calculateFireOutput(
   weapon: WeaponProfile,
   context: FireOutputContext,
 ): FireOutputResult {
-  const effectClass = weapon.effectClass;
-  const { id: rangeBand, factor: rangeFactor } = getRangeFactor(context.rangeM, weapon.outputMode);
-  const targetBase = getTargetBase(effectClass, context.targetType);
+  const profile = resolveWeaponOutputProfile(weapon);
+  const { id: rangeBand, factor: rangeFactor } = getRangeFactor(context.rangeM, profile.rangeModelId);
+  const targetBase = getTargetBase(profile, context.targetType);
   const protectionFactor = PROTECTION_FACTORS[context.protectionLevel];
   const deliveryModeFactor = context.deliveryModeFactor ?? 1.0;
-
   const value = targetBase * rangeFactor * protectionFactor * deliveryModeFactor;
 
   return {
@@ -81,11 +77,14 @@ export function calculateFireOutput(
     rangeFactor,
     protectionFactor,
     deliveryModeFactor,
-    effectClass,
+    effectClass: weapon.effectClass,
     rangeBand,
     protectionLevel: context.protectionLevel,
+    outputProfileId: profile.id,
+    outputProfileLabel: profile.label,
+    outputProfileDescription: profile.description,
     explanation: [
-      `效果等级 ${effectClass} 对 ${context.targetType} 基准 ${targetBase.toFixed(2)}`,
+      `输出档案 ${profile.label} 对 ${context.targetType} 基准 ${targetBase.toFixed(2)}`,
       `距离段 ${rangeBand} 修正 ×${rangeFactor.toFixed(2)}`,
       `防护 ${context.protectionLevel} 修正 ×${protectionFactor.toFixed(2)}`,
       `投送方式修正 ×${deliveryModeFactor.toFixed(2)}`,

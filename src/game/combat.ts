@@ -68,7 +68,7 @@ export function createCombatActions(d: CombatDeps) {
       },
     );
 
-    const foTag = formatFireOutputTag(fireOutput.value, fireOutput.effectClass, fireOutput.rangeBand, fireOutput.protectionLevel);
+    const foTag = formatFireOutputTag(fireOutput.value, fireOutput.outputProfileLabel, fireOutput.rangeBand, fireOutput.protectionLevel);
 
     const hit = Math.random() < ctx.hitChance;
     if (hit) {

@@ -9,7 +9,7 @@ import {
   generateFireOutputCurve,
   generateFireOutputTargetTable,
 } from '@/domain/fireOutputCurve';
-import { formatTargetType, formatRangeBand, formatEffectClass } from '@/domain/fireOutputFormat';
+import { formatTargetType, formatRangeBand } from '@/domain/fireOutputFormat';
 
 const props = defineProps<{ weapon: WeaponProfile }>();
 
@@ -87,8 +87,8 @@ function unlock() { locked.value = false; }
       <button v-if="locked" class="fo-unlock" type="button" @click="unlock">解除锁定</button>
     </div>
     <div class="fo-meta">
-      <span>效果等级：{{ formatEffectClass(weapon.effectClass) }}</span>
-      <span>输出模式：{{ weapon.outputMode }}</span>
+      <span>输出档案：{{ probeResult.outputProfileLabel }}</span>
+      <span class="fo-desc">{{ probeResult.outputProfileDescription }}</span>
     </div>
 
     <div class="fo-probe">
@@ -176,6 +176,12 @@ function unlock() { locked.value = false; }
   color: var(--text-muted);
   margin-bottom: 6px;
   line-height: 1.5;
+}
+.fo-desc {
+  display: block;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 1px;
 }
 .fo-probe {
   display: grid;
