@@ -1,4 +1,5 @@
 import type { CombatProfile, RuntimeUnit, UnitTemplate } from './types';
+import { getWeaponById } from './weaponCatalog';
 
 export const UNIT_TEMPLATES: readonly UnitTemplate[] = [
   {
@@ -85,6 +86,7 @@ export function createRuntimeUnitsFromTemplates(templates: readonly UnitTemplate
       angle: t.type === 'circle' ? 0 : Math.PI,
       fireAngle: t.type === 'circle' ? 0 : Math.PI,
       lastFireTime: 0,
+      weaponId: profile.weapon.id,
       combatProfile: structuredClone(profile),
     };
   });

@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.3.1.1.6
+> **当前版本：** v0.3.1.1.7
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-15 11:27
 
@@ -9,7 +9,22 @@
 
 ---
 
-## 当前版本更新日志 — v0.3.1.1.6
+## 当前版本更新日志 — v0.3.1.1.7
+
+> 发布日期：2026-05-15
+
+### 修复
+- **时间轴初始帧回退修复**：`seekToFrame()` 统一跳帧函数，所有时间轴按钮统一调用；frame[0] 作为真实初始状态（plan 前），frame[1] 作为执行前基线；`cloneFrame`/`restoreFrame` 深度克隆 `combatProfile` 避免引用残留
+- **武器目录独立**：`weaponCatalog.ts` 含 8 把武器：Kar98k、M91/30、三八式、M1 加兰德、MP40、PPSh-41、MG34、ZB26
+- **武器切换**：单位档案增加武器下拉框，切换后实时生效，战斗日志显示当前武器名
+- **单位引用武器 ID**：`RuntimeUnit.weaponId` 替换直接引用，射击计算通过 `getWeaponById()` 查找
+
+### 新增
+- `src/domain/weaponCatalog.ts` — 独立武器目录
+
+---
+
+## 前版更新日志 — v0.3.1.1.6
 
 > 发布日期：2026-05-15
 
@@ -305,6 +320,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.3.1.1.7` | 2026-05-15 | 功能 | 武器目录独立 + 时间轴初始帧修复：seekToFrame 统一跳帧、weaponCatalog 8 把武器、单位档案武器切换、frame[0] 真实初始状态 |
 | `v0.3.1.1.6` | 2026-05-15 | 重构 | FireOutput 输出档案重构：WeaponOutputProfile 模型、`resolveWeaponOutputProfile` 解析器、Kar98k/M91/30 绑定 full_power_rifle_direct |
 | `v0.3.1.1.5` | 2026-05-15 | 修复 | 单位选择状态解耦：`selectUnitByPoint` 纯查看 + 双击切换右侧档案 + 运行中可查看 |
 | `v0.3.1.1.4` | 2026-05-15 | 修复 | FireOutput 图表阶梯线修复 + 播放/暂停按钮前置：step path 对齐、采样点边界化、工具栏顺序调整 |
@@ -397,5 +413,6 @@ docs/
 ├── combat-resolution.md
 ├── control-field-design.md
 ├── training-system-parking-lot.md
+├── fire-output-weapon-family-model.md
 └── ui-style-guide.md
 ```

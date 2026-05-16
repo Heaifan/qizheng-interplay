@@ -4,6 +4,7 @@ import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
 import { BUSHES, COVERS } from '@/domain/terrain';
 import { deriveWeaponStats } from '@/domain/weapon';
 import { calculateFireOutput } from '@/domain/fireOutput';
+import { getWeaponById } from '@/domain/weaponCatalog';
 import type { RuntimeUnit } from '@/domain/types';
 
 /** 直接火力上下文 — 单次射击的完整结算信息 */
@@ -38,7 +39,7 @@ export function calculateDirectFireContext(
   attacker: RuntimeUnit,
   target: RuntimeUnit,
 ): DirectFireContext {
-  const weapon = attacker.combatProfile.weapon;
+  const weapon = getWeaponById(attacker.weaponId) ?? attacker.combatProfile.weapon;
   const stats = deriveWeaponStats(weapon);
   const dx = target.x - attacker.x;
   const dy = target.y - attacker.y;

@@ -29,7 +29,11 @@ export function createTimelineActions(d: TimelineDeps) {
     simElapsedMs: number,
   ): TimelineFrame {
     return {
-      units: units.map((u) => ({ ...u, path: u.path.map((p) => ({ ...p })) })),
+      units: units.map((u) => ({
+        ...u,
+        path: u.path.map((p) => ({ ...p })),
+        combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
+      })),
       shots: shots.map((s) => ({ ...s })),
       logs: logs.map((l) => ({ ...l })),
       mode,
@@ -46,7 +50,9 @@ export function createTimelineActions(d: TimelineDeps) {
 
   function restoreFrame(frame: TimelineFrame): void {
     d.units.value = frame.units.map((u) => ({
-      ...u, path: u.path.map((p) => ({ ...p })),
+      ...u,
+      path: u.path.map((p) => ({ ...p })),
+      combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
     }));
     d.shots.value = frame.shots.map((s) => ({ ...s }));
     d.logs.value = frame.logs.map((l) => ({ ...l }));
@@ -57,9 +63,21 @@ export function createTimelineActions(d: TimelineDeps) {
 
   function persistBaselineFrame(): void {
     const f = takeSnapshot();
-    if (d.timeline.value.length === 0) d.timeline.value.push(f);
-    else d.timeline.value[0] = f;
-    d.timelineIndex.value = 0;
+    // If timeline is empty, push frame[0] (initial state) and frame[1] (pre-exec baseline)
+    if (d.timeline.value.length === 0) {
+      d.timeline.value.push(takeSnapshot());
+      d.timeline.value.push(f);
+      d.timelineIndex.value = 1;
+    } else if (d.timeline.value.length === 1) {
+      // frame[0] exists (initial state), push baseline as frame[1]
+      d.timeline.value.push(f);
+      d.timelineIndex.value = 1;
+    } else {
+      // Replace baseline at index 1, keep frame[0] as true initial state
+      d.timeline.value[1] = f;
+      d.timeline.value = d.timeline.value.slice(0, 2);
+      d.timelineIndex.value = 1;
+    }
   }
 
   function commitTimelineFrame(): void {

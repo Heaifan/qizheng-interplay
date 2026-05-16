@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
 import { deriveWeaponStats } from '@/domain/weapon';
 import { formatEffectClass } from '@/domain/fireOutputFormat';
+import { WEAPON_CATALOG, getWeaponById } from '@/domain/weaponCatalog';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
 import FireOutputChart from './FireOutputChart.vue';
 
@@ -50,6 +51,19 @@ watch(highlightedUnitId, (id) => {
 
 const weaponStats = computed(() => deriveWeaponStats(editing.weapon));
 const weaponExpanded = ref(false);
+
+const catalogWeapons = computed(() =>
+  WEAPON_CATALOG.map((w) => ({ value: w.id, label: w.name })),
+);
+
+function changeWeapon(weaponId: string): void {
+  const weapon = getWeaponById(weaponId);
+  if (!weapon) return;
+  editing.weapon = { ...weapon };
+  // Sync weaponId to runtime unit
+  const unit = units.value[selectedIdx.value];
+  if (unit) unit.weaponId = weaponId;
+}
 
 function apply(): void {
   const unit = units.value[selectedIdx.value];
@@ -146,6 +160,18 @@ function factionLabel(): string {
         <div class="mount-name">{{ editing.weapon.name || '未挂载' }}</div>
         <div class="mount-tags">{{ weaponTypeLabel() }} ｜ 直射 ｜ {{ actionLabel() }}</div>
         <div class="mount-specs">{{ editing.weapon.caliber }}mm ｜ 枪管 {{ editing.weapon.barrelLength }}mm ｜ 瞄具 {{ editing.weapon.sightMag }}x</div>
+      </div>
+
+      <!-- 武器切换 -->
+      <div class="field-row">
+        <span class="field-label">切换武器</span>
+        <select
+          class="field-select"
+          :value="editing.weapon.id"
+          @change="changeWeapon(($event.target as HTMLSelectElement).value)"
+        >
+          <option v-for="w in catalogWeapons" :key="w.value" :value="w.value">{{ w.label }}</option>
+        </select>
       </div>
       <!-- 展开详情 -->
       <div v-if="weaponExpanded">

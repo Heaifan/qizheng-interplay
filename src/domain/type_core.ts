@@ -42,6 +42,8 @@ export interface RuntimeUnit extends UnitTemplate {
   dead: boolean;
   path: Point[];
   currentPathIdx: number;
+  /** 当前武器 ID（引用 weaponCatalog） */
+  weaponId: string;
   /** Tactical facing direction: icon arrow, perception/fire/control sector center */
   angle: number;
   /** Last actual shot direction, used for debug/trail reference only */

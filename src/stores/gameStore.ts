@@ -108,6 +108,7 @@ export const useGameStore = defineStore('game', () => {
     stepBackward: playback.stepBackward,
     stepForward: playback.stepForward,
     seekTimeline: playback.seekTimeline,
+    seekToFrame: playback.seekToFrame,
     rewindToStart: playback.rewindToStart,
     togglePlayback: () => {
       if (mode.value !== 'executing') {

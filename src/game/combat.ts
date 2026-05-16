@@ -3,6 +3,7 @@ import { bearingBetween } from '@/domain/angles';
 import { calculateDirectFireContext } from './combatFormula';
 import { calculateFireOutput } from '@/domain/fireOutput';
 import { formatFireOutputTag } from '@/domain/fireOutputFormat';
+import { getWeaponById } from '@/domain/weaponCatalog';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
@@ -43,13 +44,15 @@ export function createCombatActions(d: CombatDeps) {
       color: attacker.stroke, alpha: 1, blocked: ctx.blocked,
     });
 
+    const fireWeapon = getWeaponById(attacker.weaponId) ?? attacker.combatProfile.weapon;
+
     const modParts: string[] = [];
     if (ctx.blocked) modParts.push('遮挡');
     if (ctx.throughBush) modParts.push('灌木');
     const modStr = modParts.length ? `｜${modParts.join('/')}` : '';
 
     const logBase =
-      `${ctx.weaponName} 开火` +
+      `${fireWeapon.name} 开火` +
       `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
       `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
       `｜距离×${ctx.distanceModifier.toFixed(2)}` +
@@ -58,9 +61,8 @@ export function createCombatActions(d: CombatDeps) {
       `${modStr}` +
       `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
       `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
-
     const fireOutput = calculateFireOutput(
-      attacker.combatProfile.weapon,
+      fireWeapon,
       {
         rangeM: ctx.distance,
         targetType: 'personnel',

@@ -20,31 +20,8 @@ export interface PlaybackDeps {
 }
 
 export function createPlaybackActions(d: PlaybackDeps) {
-  function stepBackward(): void {
-    if (d.timelineIndex.value <= d.playbackMin.value) return;
-    d.timelineIndex.value -= 1;
-    if (d.timelineIndex.value < d.playbackMin.value) {
-      d.timelineIndex.value = d.playbackMin.value;
-    }
-    d.restoreFrame(d.timeline.value[d.timelineIndex.value]!);
-    d.toolbarHighlight.value = 'exec';
-  }
-
-  function stepForward(): void {
-    if (d.timelineIndex.value < d.timeline.value.length - 1) {
-      d.timelineIndex.value += 1;
-      d.restoreFrame(d.timeline.value[d.timelineIndex.value]!);
-      d.toolbarHighlight.value = 'exec';
-      return;
-    }
-    if (d.mode.value !== 'executing') return;
-    d.runSimulationTick();
-    d.commitTimelineFrame();
-    d.executionState.value = 'paused';
-    d.toolbarHighlight.value = 'exec';
-  }
-
-  function seekTimeline(index: number): void {
+  /** 统一跳帧：所有时间轴跳转统一走此函数 */
+  function seekToFrame(index: number): void {
     const target = Math.max(
       d.playbackMin.value,
       Math.min(index, d.timeline.value.length - 1),
@@ -56,13 +33,30 @@ export function createPlaybackActions(d: PlaybackDeps) {
     d.toolbarHighlight.value = 'exec';
   }
 
-  function rewindToStart(): void {
-    if (d.timeline.value.length === 0) return;
-    d.timelineIndex.value = 0;
-    d.restoreFrame(d.timeline.value[0]!);
+  function stepBackward(): void {
+    if (d.timelineIndex.value <= d.playbackMin.value) return;
+    seekToFrame(d.timelineIndex.value - 1);
+  }
+
+  function stepForward(): void {
+    if (d.timelineIndex.value < d.timeline.value.length - 1) {
+      seekToFrame(d.timelineIndex.value + 1);
+      return;
+    }
+    if (d.mode.value !== 'executing') return;
+    d.runSimulationTick();
+    d.commitTimelineFrame();
     d.executionState.value = 'paused';
     d.toolbarHighlight.value = 'exec';
   }
 
-  return { stepBackward, stepForward, seekTimeline, rewindToStart };
+  function seekTimeline(index: number): void {
+    seekToFrame(index);
+  }
+
+  function rewindToStart(): void {
+    seekToFrame(0);
+  }
+
+  return { stepBackward, stepForward, seekTimeline, rewindToStart, seekToFrame };
 }
