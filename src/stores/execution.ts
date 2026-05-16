@@ -49,11 +49,16 @@ export function createExecutionActions(d: ExecutionDeps) {
 
   function startExecution(): void {
     if (d.mode.value === 'gameover') return;
-    d.persistBaselineFrame();
+    // Reset to clean execution start state before saving baseline
+    d.simElapsedMs.value = 0;
+    d.shots.value = [];
+    for (const u of d.units.value) u.currentSpeedKmh = 0;
     d.mode.value = 'executing';
-    d.executionState.value = 'running';
+    d.executionState.value = 'paused';
     d.toolbarHighlight.value = 'exec';
     d.addLog('系统', '命令已下达，单位开始沿路径移动。', 'log-system');
+    d.persistBaselineFrame();
+    d.executionState.value = 'running';
   }
 
   function pauseExecution(): void {

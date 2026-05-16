@@ -55,7 +55,7 @@ export function createPlaybackActions(d: PlaybackDeps) {
   }
 
   function rewindToStart(): void {
-    seekToFrame(0);
+    seekToFrame(d.playbackMin.value);
   }
 
   return { stepBackward, stepForward, seekTimeline, rewindToStart, seekToFrame };

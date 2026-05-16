@@ -86,9 +86,11 @@ export function createTimelineActions(d: TimelineDeps) {
     }
     d.timeline.value.push(takeSnapshot());
     d.timelineIndex.value = d.timeline.value.length - 1;
-    if (d.timeline.value.length > 1200) {
-      d.timeline.value.shift();
-      d.timelineIndex.value = Math.max(0, d.timelineIndex.value - 1);
+    const MAX_FRAMES = 1200;
+    const PRESERVED_HEAD = 2; // keep frame[0] (initial) and frame[1] (exec baseline)
+    if (d.timeline.value.length > MAX_FRAMES) {
+      d.timeline.value.splice(PRESERVED_HEAD, 1);
+      d.timelineIndex.value = Math.max(PRESERVED_HEAD, d.timelineIndex.value - 1);
     }
   }
 

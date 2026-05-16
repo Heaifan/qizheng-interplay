@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.3.1.1.9
+> **当前版本：** v0.3.1.1.10
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-15 11:27
 
@@ -9,7 +9,25 @@
 
 ---
 
-## 当前版本更新日志 — v0.3.1.1.9
+## 当前版本更新日志 — v0.3.1.1.10
+
+> 发布日期：2026-05-15
+> Release：[v0.3.1.1.10](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.3.1.1.10)
+
+### 修复
+- **时间轴基线保护**：timeline 截断保留 frame[0]/frame[1]（初始帧 + 执行基线），播放 30 秒后回到开头不再跳到 T+11s
+- **startExecution 顺序重排**：先重置 simElapsedMs/shots/速度 → 设置 executing mode → 保存基线帧，确保基线帧是干净的 T+0s 执行起点
+- **playbackMin 改为执行基线索引**：rewindToStart 回到执行起点而非沙盘初始化；canStepBack 使用 playbackMin
+- **战损序列从执行基线计算**：`casualtySeries` 从 `playbackMin` 切片，时间相对起点归零
+
+### 修正
+- **战损图红蓝标签反置**：红方数值显示为红方、蓝方显示为蓝方
+- **tooltip 位置不挡日志**：固定在图表卡片右上角（right:8px top:22px）
+- **曲线随播放展开**：`visibleSeries` 按 `currentTimeSec` 过滤，hover 只吸附可见点
+
+---
+
+## 前版更新日志 — v0.3.1.1.9
 
 > 发布日期：2026-05-15
 > Release：[v0.3.1.1.9](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.3.1.1.9)

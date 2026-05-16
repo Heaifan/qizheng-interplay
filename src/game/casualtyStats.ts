@@ -28,14 +28,16 @@ function sumHpByFaction(units: readonly RuntimeUnit[]): { red: number; blue: num
   return { red, blue };
 }
 
-/** 从 timeline 帧序列生成战损统计点 */
+/** 从 timeline 帧序列生成战损统计点（时间相对第一帧归零） */
 export function buildCasualtySeries(
   frames: readonly TimelineFrame[],
   initial: HpTotals,
 ): CasualtyPoint[] {
-  return frames.map((frame, idx) => {
+  if (frames.length === 0) return [];
+  const baseMs = frames[0]!.simElapsedMs;
+  return frames.map((frame) => {
     const { red: redHp, blue: blueHp } = sumHpByFaction(frame.units);
-    const timeSec = idx === 0 ? 0 : Math.round(frame.simElapsedMs / 1000);
+    const timeSec = Math.round((frame.simElapsedMs - baseMs) / 1000);
     return {
       timeSec,
       redHpValue: redHp,

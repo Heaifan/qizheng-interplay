@@ -8,17 +8,22 @@ const props = defineProps<{
 }>();
 
 const W = 280;
-const H = 100;
-const M_T = 6;
-const M_R = 10;
-const M_B = 16;
-const M_L = 28;
+const H = 110;
+const M_T = 4;
+const M_R = 8;
+const M_B = 14;
+const M_L = 26;
 
 const svgRef = ref<SVGSVGElement | null>(null);
 
+// Only show points up to current time (dynamic unfold)
+const visibleSeries = computed(() =>
+  props.series.filter((p) => p.timeSec <= props.currentTimeSec),
+);
+
 const maxTime = computed(() => {
-  if (props.series.length === 0) return 10;
-  return Math.max(props.series[props.series.length - 1]!.timeSec, 1);
+  if (visibleSeries.value.length === 0) return 10;
+  return Math.max(visibleSeries.value[visibleSeries.value.length - 1]!.timeSec, 1);
 });
 
 function plotW() { return W - M_L - M_R; }
@@ -27,25 +32,24 @@ function timeToX(t: number) { return M_L + (t / maxTime.value) * plotW(); }
 function pctToY(pct: number) { return M_T + (1 - pct / 100) * plotH(); }
 
 const redPoints = computed(() =>
-  props.series.map((p) => `${timeToX(p.timeSec)},${pctToY(p.redHpPct)}`).join(' '),
+  visibleSeries.value.map((p) => `${timeToX(p.timeSec)},${pctToY(p.redHpPct)}`).join(' '),
 );
 const bluePoints = computed(() =>
-  props.series.map((p) => `${timeToX(p.timeSec)},${pctToY(p.blueHpPct)}`).join(' '),
+  visibleSeries.value.map((p) => `${timeToX(p.timeSec)},${pctToY(p.blueHpPct)}`).join(' '),
 );
 
-const probeX = computed(() => timeToX(props.currentTimeSec));
+const probeNowX = computed(() => timeToX(props.currentTimeSec));
 
 const currentRed = computed(() => {
-  const p = [...props.series].reverse().find((p) => p.timeSec <= props.currentTimeSec);
+  const p = [...visibleSeries.value].reverse().find(() => true);
   return p?.redHpPct ?? 100;
 });
 const currentBlue = computed(() => {
-  const p = [...props.series].reverse().find((p) => p.timeSec <= props.currentTimeSec);
+  const p = [...visibleSeries.value].reverse().find(() => true);
   return p?.blueHpPct ?? 100;
 });
 
 // —— hover state ——
-const hoverTime = ref<number | null>(null);
 const hoverPoint = ref<CasualtyPoint | null>(null);
 const hoverX = ref<number | null>(null);
 
@@ -68,20 +72,19 @@ function onMouseMove(ev: MouseEvent) {
   const localX = (ev.clientX - rect.left) * scaleX;
   const plotLocalX = Math.max(0, Math.min(plotW(), localX - M_L));
   const ratio = plotW() <= 0 ? 0 : plotLocalX / plotW();
-  const seriesLen = props.series.length;
-  const minT = seriesLen > 0 ? props.series[0]!.timeSec : 0;
-  const maxT = seriesLen > 0 ? props.series[seriesLen - 1]!.timeSec : 0;
+  const vs = visibleSeries.value;
+  if (vs.length === 0) return;
+  const minT = vs[0]!.timeSec;
+  const maxT = vs[vs.length - 1]!.timeSec;
   const targetT = minT + ratio * (maxT - minT);
-  const nearest = findNearestPoint(props.series, targetT);
+  const nearest = findNearestPoint(vs, targetT);
   if (nearest) {
     hoverPoint.value = nearest;
-    hoverTime.value = nearest.timeSec;
     hoverX.value = timeToX(nearest.timeSec);
   }
 }
 
 function onMouseLeave() {
-  hoverTime.value = null;
   hoverPoint.value = null;
   hoverX.value = null;
 }
@@ -97,8 +100,8 @@ const blueLossPct = computed(() => 100 - blueRemainPct.value);
     <div class="cc-header">
       <span class="cc-title">战损统计</span>
       <span class="cc-legend">
-        <span class="cc-red">蓝方 {{ currentRed.toFixed(0) }}%</span>
-        <span class="cc-blue">红方 {{ currentBlue.toFixed(0) }}%</span>
+        <span class="cc-red">红方 {{ currentRed.toFixed(0) }}%</span>
+        <span class="cc-blue">蓝方 {{ currentBlue.toFixed(0) }}%</span>
       </span>
     </div>
     <svg
@@ -118,22 +121,21 @@ const blueLossPct = computed(() => 100 - blueRemainPct.value);
       <!-- x labels -->
       <text :x="M_L" :y="H - 2" class="cc-ax-lbl">0s</text>
       <text :x="W - M_R" :y="H - 2" text-anchor="end" class="cc-ax-lbl">{{ maxTime }}s</text>
-      <!-- red line -->
+      <!-- curves -->
       <polyline :points="redPoints" class="cc-line cc-line-red" />
-      <!-- blue line -->
       <polyline :points="bluePoints" class="cc-line cc-line-blue" />
       <!-- current-time probe -->
-      <line :x1="probeX" :y1="M_T" :x2="probeX" :y2="H - M_B" class="cc-probe-now" />
+      <line :x1="probeNowX" :y1="M_T" :x2="probeNowX" :y2="H - M_B" class="cc-probe-now" />
       <!-- hover probe -->
       <line v-if="hoverX !== null" :x1="hoverX" :y1="M_T" :x2="hoverX" :y2="H - M_B" class="cc-probe-hover" />
       <circle v-if="hoverX !== null" :cx="hoverX" :cy="pctToY(hoverPoint?.redHpPct ?? 100)" r="3" class="cc-dot-red" />
       <circle v-if="hoverX !== null" :cx="hoverX" :cy="pctToY(hoverPoint?.blueHpPct ?? 100)" r="3" class="cc-dot-blue" />
     </svg>
-    <!-- hover tooltip -->
-    <div v-if="hoverTime !== null" class="cc-tip">
-      <div class="cc-tip-time">T+{{ hoverTime }}s</div>
-      <div class="cc-tip-row"><span class="cc-red">●</span> 蓝方 剩余{{ redRemainPct }}%｜战损{{ redLossPct }}%</div>
-      <div class="cc-tip-row"><span class="cc-blue">●</span> 红方 剩余{{ blueRemainPct }}%｜战损{{ blueLossPct }}%</div>
+    <!-- hover tooltip (fixed inside card top-right) -->
+    <div v-if="hoverPoint !== null" class="cc-tip">
+      <div class="cc-tip-time">T+{{ hoverPoint?.timeSec }}s</div>
+      <div class="cc-tip-row"><span class="cc-red">●</span> 红方 剩{{ redRemainPct }}% 损{{ redLossPct }}%</div>
+      <div class="cc-tip-row"><span class="cc-blue">●</span> 蓝方 剩{{ blueRemainPct }}% 损{{ blueLossPct }}%</div>
     </div>
   </section>
 </template>
@@ -144,23 +146,24 @@ const blueLossPct = computed(() => 100 - blueRemainPct.value);
   background: var(--panel-card);
   flex-shrink: 0;
   position: relative;
+  overflow: hidden;
 }
 .cc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  height: 22px;
-  padding: 0 8px;
+  height: 18px;
+  padding: 0 6px;
 }
 .cc-title {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--derived-title);
 }
 .cc-legend {
   display: flex;
-  gap: 8px;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 9px;
 }
 .cc-red { color: #B85A4D; font-weight: 700; font-family: ui-monospace, monospace; }
 .cc-blue { color: #4A7EA8; font-weight: 700; font-family: ui-monospace, monospace; }
@@ -181,19 +184,20 @@ const blueLossPct = computed(() => 100 - blueRemainPct.value);
 .cc-dot-blue { fill: #4A7EA8; stroke: #fff; stroke-width: 1; pointer-events: none; }
 .cc-tip {
   position: absolute;
-  left: 10px;
-  bottom: 100px;
+  right: 8px;
+  top: 22px;
+  left: auto;
+  bottom: auto;
+  z-index: 2;
   background: rgba(50, 44, 30, 0.92);
   color: #f0e8d0;
-  font-size: 10px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  line-height: 1.5;
+  font-size: 9px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  line-height: 1.4;
   pointer-events: none;
   white-space: nowrap;
 }
-.cc-tip-time { font-weight: 700; margin-bottom: 2px; }
-.cc-tip-row { display: flex; align-items: center; gap: 3px; }
-.cc-tip-row .cc-red,
-.cc-tip-row .cc-blue { font-size: 9px; }
+.cc-tip-time { font-weight: 700; margin-bottom: 1px; }
+.cc-tip-row { display: flex; align-items: center; gap: 2px; }
 </style>

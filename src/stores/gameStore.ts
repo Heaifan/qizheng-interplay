@@ -57,7 +57,10 @@ export const useGameStore = defineStore('game', () => {
     shots, logs, timeline, timelineIndex, simElapsedMs, toolbarHighlight,
     takeSnapshot: tl.takeSnapshot, addLog,
   });
-  const playbackMin = computed(() => 0);
+  const EXEC_START_IDX = 1;
+  const playbackMin = computed(() =>
+    timeline.value.length > EXEC_START_IDX ? EXEC_START_IDX : 0,
+  );
   const playbackMax = computed(() => Math.max(0, timeline.value.length - 1));
   const exec = createExecutionActions({
     mode, executionState, units, shots, logs, simElapsedMs, toolbarHighlight,
@@ -76,7 +79,7 @@ export const useGameStore = defineStore('game', () => {
   });
   const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera, ruler });
 
-  const canStepBack = computed(() => timelineIndex.value > 0);
+  const canStepBack = computed(() => timelineIndex.value > playbackMin.value);
   const canStepForward = computed(() =>
     timelineIndex.value < timeline.value.length - 1 || mode.value === 'executing',
   );
@@ -94,9 +97,10 @@ export const useGameStore = defineStore('game', () => {
     logs.value.filter((l) => l.timeMs <= simElapsedMs.value),
   );
 
-  /** 战损统计序列：从 timeline 帧生成 */
+  /** 战损统计序列：从执行基线帧开始 */
   const casualtySeries = computed(() => {
-    const frames = timeline.value;
+    const start = playbackMin.value;
+    const frames = timeline.value.slice(start);
     if (frames.length === 0) return [];
     const initialHp = computeInitialHpTotals(frames[0]!.units);
     return buildCasualtySeries(frames, initialHp);
