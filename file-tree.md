@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.3.1.1.7
+> **当前版本：** v0.3.1.1.9
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-15 11:27
 
@@ -9,22 +9,41 @@
 
 ---
 
-## 当前版本更新日志 — v0.3.1.1.7
+## 当前版本更新日志 — v0.3.1.1.9
 
 > 发布日期：2026-05-15
+> Release：[v0.3.1.1.9](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.3.1.1.9)
+
+### 新增
+- **战损统计图**：右下角 SVG 双线图（红方/蓝方 HP%），随播放同步展开
+- **鼠标 hover 交互**：垂直线吸附最近时间点 + tooltip（T+xs、双方剩余/战损%）
+- 战损卡片压缩布局，扩大绘图区域
+- Y 轴 100/50/0%、X 轴 0s/末尾时间
+- **战斗日志按 timeMs 过滤**：回到开头只显示 T+0s 日志
 
 ### 修复
-- **时间轴初始帧回退修复**：`seekToFrame()` 统一跳帧函数，所有时间轴按钮统一调用；frame[0] 作为真实初始状态（plan 前），frame[1] 作为执行前基线；`cloneFrame`/`restoreFrame` 深度克隆 `combatProfile` 避免引用残留
+- seekToFrame 统一跳帧，所有时间轴按钮统一入口
+- frame[0] 作为真实初始状态不覆盖
+- cloneFrame/restoreFrame 深度克隆 combatProfile
+
+---
+
+## 前版更新日志 — v0.3.1.1.8
+
+> Release：[v0.3.1.1.8](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.3.1.1.8)
+
+### 修复
+- **时间轴初始帧回退修复**：`seekToFrame()` 统一跳帧函数；frame[0] 作为真实初始状态；`cloneFrame`/`restoreFrame` 深度克隆 `combatProfile`
 - **武器目录独立**：`weaponCatalog.ts` 含 8 把武器：Kar98k、M91/30、三八式、M1 加兰德、MP40、PPSh-41、MG34、ZB26
-- **武器切换**：单位档案增加武器下拉框，切换后实时生效，战斗日志显示当前武器名
-- **单位引用武器 ID**：`RuntimeUnit.weaponId` 替换直接引用，射击计算通过 `getWeaponById()` 查找
+- **武器切换**：单位档案增加武器下拉框，切换后实时生效
+- **单位引用武器 ID**：`RuntimeUnit.weaponId` 替换直接引用
 
 ### 新增
 - `src/domain/weaponCatalog.ts` — 独立武器目录
 
 ---
 
-## 前版更新日志 — v0.3.1.1.6
+## 前版更新日志 — v0.3.1.1.7
 
 > 发布日期：2026-05-15
 
