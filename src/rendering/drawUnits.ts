@@ -135,7 +135,7 @@ export function drawUnitTacticalLabels(
 
   const weapon = getWeaponById(u.weaponId);
   const weaponName = weapon?.displayName ?? weapon?.name ?? '?';
-  const speedText = `${u.speedKmh}km/h`;
+  const speedText = `${Math.round(u.currentSpeedKmh)}km/h`;
   const formText = 'Ø';
 
   ctx.save();
@@ -147,23 +147,23 @@ export function drawUnitTacticalLabels(
   // —— formation mark (Ø) at top center ——
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
-  const formY = topY - 2 / z;
+  const formY = topY - 6 / z;
   ctx.strokeText(formText, u.x, formY);
   ctx.fillText(formText, u.x, formY);
 
   // —— speed at right side, top-aligned ——
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
-  const speedX = rightX + 3 / z;
-  const speedY = topY;
+  const speedX = rightX + 5 / z;
+  const speedY = topY + 4 / z;
   ctx.strokeText(speedText, speedX, speedY);
   ctx.fillText(speedText, speedX, speedY);
 
-  // —— weapon name at left-bottom outer ——
+  // —— weapon name at left-bottom outer, flush to marker edge ——
   ctx.textAlign = 'right';
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'middle';
   const weapX = leftX - 4 / z;
-  const weapY = bottomY + 2 / z;
+  const weapY = bottomY - 2 / z;
   ctx.strokeText(weaponName, weapX, weapY);
   ctx.fillText(weaponName, weapX, weapY);
 

@@ -87,7 +87,8 @@ export function createRuntimeUnitsFromTemplates(templates: readonly UnitTemplate
       fireAngle: t.type === 'circle' ? 0 : Math.PI,
       lastFireTime: 0,
       weaponId: profile.weapon.id,
-      speedKmh: 6,
+      maxSpeedKmh: 6,
+      currentSpeedKmh: 0,
       formationType: 'single',
       combatProfile: structuredClone(profile),
     };

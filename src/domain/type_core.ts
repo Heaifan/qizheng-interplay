@@ -45,8 +45,10 @@ export interface RuntimeUnit extends UnitTemplate {
   currentPathIdx: number;
   /** 当前武器 ID（引用 weaponCatalog） */
   weaponId: string;
-  /** 移动速度（km/h） */
-  speedKmh: number;
+  /** 最大速度（km/h） */
+  maxSpeedKmh: number;
+  /** 当前速度（km/h），兵牌显示用 */
+  currentSpeedKmh: number;
   /** 编制类型 */
   formationType: FormationType;
   /** Tactical facing direction: icon arrow, perception/fire/control sector center */
