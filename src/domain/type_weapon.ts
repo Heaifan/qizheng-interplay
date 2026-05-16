@@ -32,6 +32,8 @@ export type EffectClass =
 export interface WeaponProfile {
   id: string;
   name: string;
+  /** 兵牌显示名（默认同 name） */
+  displayName?: string;
   caliber: number;
   action: WeaponAction;
   barrelLength: number;

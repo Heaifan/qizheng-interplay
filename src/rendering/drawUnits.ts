@@ -1,4 +1,5 @@
 import type { RuntimeUnit, ShotTrail } from '@/domain/types';
+import { getWeaponById } from '@/domain/weaponCatalog';
 
 export function drawShots(
   ctx: CanvasRenderingContext2D,
@@ -113,5 +114,58 @@ export function drawUnits(
     ctx.stroke();
 
     ctx.restore();
+
+    // tactical labels (world space, separate from unit transform)
+    drawUnitTacticalLabels(ctx, u, zoom);
   }
+}
+
+/** 兵牌信息标签：编制标记(Ø)、装备型号、速度、单位名称 */
+export function drawUnitTacticalLabels(
+  ctx: CanvasRenderingContext2D,
+  u: RuntimeUnit,
+  zoom: number,
+): void {
+  const z = Math.max(zoom, 0.01);
+  const r = BASE.iconRadius / z;
+  const topY = u.y - r;
+  const bottomY = u.y + r;
+  const leftX = u.x - r;
+  const rightX = u.x + r;
+
+  const weapon = getWeaponById(u.weaponId);
+  const weaponName = weapon?.displayName ?? weapon?.name ?? '?';
+  const speedText = `${u.speedKmh}km/h`;
+  const formText = 'Ø';
+
+  ctx.save();
+  ctx.font = `500 ${11 / z}px sans-serif`;
+  ctx.lineWidth = Math.max(2.5 / z, 0.5);
+  ctx.strokeStyle = 'rgba(255, 250, 230, 0.85)';
+  ctx.fillStyle = '#2f2a1f';
+
+  // —— formation mark (Ø) at top center ——
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  const formY = topY - 2 / z;
+  ctx.strokeText(formText, u.x, formY);
+  ctx.fillText(formText, u.x, formY);
+
+  // —— speed at right side, top-aligned ——
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  const speedX = rightX + 3 / z;
+  const speedY = topY;
+  ctx.strokeText(speedText, speedX, speedY);
+  ctx.fillText(speedText, speedX, speedY);
+
+  // —— weapon name at left-bottom outer ——
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'top';
+  const weapX = leftX - 4 / z;
+  const weapY = bottomY + 2 / z;
+  ctx.strokeText(weaponName, weapX, weapY);
+  ctx.fillText(weaponName, weapX, weapY);
+
+  ctx.restore();
 }

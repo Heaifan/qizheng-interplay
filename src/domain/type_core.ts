@@ -6,6 +6,7 @@ export type WoundState = 'healthy' | 'light' | 'heavy' | 'incapacitated';
 export type LogTone = 'log-hit' | 'log-miss' | 'log-kill' | 'log-system' | '';
 export type ToolbarHighlight = 'blue' | 'red' | 'exec' | null;
 export type InteractionMode = 'browse' | 'measure' | 'planPath';
+export type FormationType = 'single';
 
 export interface Point { x: number; y: number; }
 export interface CoverRect { x: number; y: number; w: number; h: number; }
@@ -44,6 +45,10 @@ export interface RuntimeUnit extends UnitTemplate {
   currentPathIdx: number;
   /** 当前武器 ID（引用 weaponCatalog） */
   weaponId: string;
+  /** 移动速度（km/h） */
+  speedKmh: number;
+  /** 编制类型 */
+  formationType: FormationType;
   /** Tactical facing direction: icon arrow, perception/fire/control sector center */
   angle: number;
   /** Last actual shot direction, used for debug/trail reference only */

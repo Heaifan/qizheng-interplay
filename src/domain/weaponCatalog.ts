@@ -15,7 +15,7 @@ export const WEAPON_CATALOG: WeaponProfile[] = [
     tags: ['direct_fire', 'bolt_action', 'rifle'],
   },
   {
-    id: 'm91-30', name: 'M91/30 莫辛纳甘', caliber: 7.62, action: 'bolt',
+    id: 'm91-30', name: 'M91/30 莫辛纳甘', displayName: 'M91/30', caliber: 7.62, action: 'bolt',
     barrelLength: 730, sightMag: 1.0,
     category: 'rifle', family: 'bolt_action_rifle',
     outputMode: 'kinetic_single', effectClass: 'full_power_rifle',
