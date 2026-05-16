@@ -1,6 +1,7 @@
 import type { CameraState } from '@/domain/camera';
 import { worldToScreen } from '@/domain/camera';
 import type { RuntimeUnit } from '@/domain/types';
+import { getUnitDisplayName } from '@/domain/unitDisplay';
 
 /** 在 overlay 层绘制固定大小的单位名称标签（不受 camera 缩放影响） */
 export function drawUnitLabels(
@@ -15,7 +16,7 @@ export function drawUnitLabels(
   for (const u of units) {
     if (u.dead) continue;
     const sp = worldToScreen(u.x, u.y, camera);
-    const label = u.combatProfile.name || u.id;
+    const label = getUnitDisplayName(u);
     const tw = ctx.measureText(label).width;
     const px = 6;
     const py = 3;

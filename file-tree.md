@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.3.1.1.10
+> **当前版本：** v0.4.1.1
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-16 17:02
 
@@ -9,7 +9,27 @@
 
 ---
 
-## 当前版本更新日志 — v0.3.1.1.10
+## 当前版本更新日志 — v0.4.1.1
+
+> 发布日期：2026-05-16
+> Release：[v0.4.1.1](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.1)
+
+### 新增
+- **JSON 武器数据入口**：`src/data/weapons/builtin.weapons.json`，8 把武器从 TS 表迁移至 JSON
+- **WeaponRegistry**：统一武器注册/查询，支持 `getWeaponById` / `listWeapons`
+- **Path2D 兵牌图标系统**：`unitGlyphs.ts`，每种武器绑定 iconKind（rifle/smg/machine_gun 等），兵牌内图标跟随武器变化
+- **单位显示派生**：`unitDisplay.ts`，单位名称根据阵营+武器动态生成（德军步枪手、苏军冲锋枪手等）
+- **冲锋枪输出档案**：`smg_direct` + `smg_kinetic` 衰减模型，MP40/PPSh-41 不再使用全威力步枪弹档案
+
+### 调整
+- `WeaponProfile` 扩展：shortName、country、era、roleLabel、iconKind
+- `weaponCatalog.ts` 改为转发到 weaponRegistry
+- 单位档案武器下拉框从 registry 读取
+- 兵牌内部箭头替换为武器 glyph（跟随朝向旋转）
+
+---
+
+## 前版更新日志 — v0.3.1.1.10
 
 > 发布日期：2026-05-15
 > Release：[v0.3.1.1.10](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.3.1.1.10)

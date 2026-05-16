@@ -30,6 +30,13 @@ export const RANGE_MODELS: Record<string, readonly RangeModelEntry[]> = {
     { id: 'long', min: 300, max: 500, factor: 0.75 },
     { id: 'extreme', min: 500, max: Infinity, factor: 0.55 },
   ],
+  smg_kinetic: [
+    { id: 'point_blank', min: 0, max: 50, factor: 1.0 },
+    { id: 'short', min: 50, max: 100, factor: 0.75 },
+    { id: 'medium', min: 100, max: 200, factor: 0.35 },
+    { id: 'long', min: 200, max: 400, factor: 0.15 },
+    { id: 'extreme', min: 400, max: Infinity, factor: 0.05 },
+  ],
 } as const;
 
 // ---- 输出档案表 ----
@@ -40,6 +47,13 @@ export const OUTPUT_PROFILES: Record<string, WeaponOutputProfile> = {
     targetBase: { personnel: 1.0, lightVehicle: 0.2, armor: 0.01, structure: 0.04, obstacle: 0.03 },
     rangeModelId: 'rifle_kinetic',
     description: '以全威力步枪弹命中无防护人员作为 1.00 基准；对轻车辆有有限破坏；对装甲、工事、障碍效果很弱。',
+  },
+  smg_direct: {
+    id: 'smg_direct',
+    label: '冲锋枪弹直射',
+    targetBase: { personnel: 0.55, lightVehicle: 0.05, armor: 0.0, structure: 0.01, obstacle: 0.01 },
+    rangeModelId: 'smg_kinetic',
+    description: '近距离对人员有效，中远距离快速衰减。',
   },
 };
 

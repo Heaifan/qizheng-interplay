@@ -4,7 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
 import { deriveWeaponStats } from '@/domain/weapon';
 import { formatEffectClass } from '@/domain/fireOutputFormat';
-import { WEAPON_CATALOG, getWeaponById } from '@/domain/weaponCatalog';
+import { listWeapons, getWeaponById } from '@/domain/weaponCatalog';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
 import FireOutputChart from './FireOutputChart.vue';
 
@@ -53,7 +53,7 @@ const weaponStats = computed(() => deriveWeaponStats(editing.weapon));
 const weaponExpanded = ref(false);
 
 const catalogWeapons = computed(() =>
-  WEAPON_CATALOG.map((w) => ({ value: w.id, label: w.name })),
+  listWeapons().map((w) => ({ value: w.id, label: w.displayName ?? w.name })),
 );
 
 function changeWeapon(weaponId: string): void {

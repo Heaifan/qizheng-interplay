@@ -29,25 +29,30 @@ export type EffectClass =
   | 'demolition_charge_light' | 'demolition_charge_medium' | 'demolition_charge_heavy'
   | 'satchel_charge' | 'bangalore_torpedo';
 
+export type WeaponIconKind =
+  | 'rifle' | 'rifle_bar' | 'rifle_multi' | 'smg'
+  | 'machine_gun' | 'mortar' | 'anti_tank' | 'artillery'
+  | 'flamethrower' | 'engineer';
+
 export interface WeaponProfile {
   id: string;
   name: string;
-  /** 兵牌显示名（默认同 name） */
   displayName?: string;
+  shortName?: string;
+  country?: string;
+  era?: string;
   caliber: number;
   action: WeaponAction;
   barrelLength: number;
   sightMag: number;
   category?: WeaponCategory;
-  tags?: string[];
-  /** 武器家族分类（用于匹配训练模板、行为标签） */
   family: WeaponFamily;
-  /** 输出模式（决定距离衰减曲线类型） */
   outputMode: OutputMode;
-  /** 效果等级（决定对不同目标类型的基准毁伤） */
   effectClass: EffectClass;
-  /** 武器输出档案 ID（优先于 effectClass + outputMode） */
   outputProfileId?: string;
+  roleLabel?: string;
+  iconKind?: WeaponIconKind;
+  tags?: string[];
 }
 
 export interface WeaponDerivedStats {

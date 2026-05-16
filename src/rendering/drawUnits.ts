@@ -1,5 +1,6 @@
 import type { RuntimeUnit, ShotTrail } from '@/domain/types';
 import { getWeaponById } from '@/domain/weaponCatalog';
+import { drawUnitGlyph, resolveUnitGlyphKind } from './unitGlyphs';
 
 export function drawShots(
   ctx: CanvasRenderingContext2D,
@@ -98,20 +99,10 @@ export function drawUnits(
       ctx.stroke();
     }
 
-    // facing arrow
+    // weapon glyph (rotated with facing direction)
     ctx.rotate(u.angle);
-    const al = BASE.arrowLen / z;
-    const aw = BASE.arrowWing / z;
-    const ao = BASE.arrowOff / z;
-    ctx.beginPath();
-    ctx.moveTo(ao, 0);
-    ctx.lineTo(ao + al, 0);
-    ctx.lineTo(ao + al - aw, -aw);
-    ctx.moveTo(ao + al, 0);
-    ctx.lineTo(ao + al - aw, aw);
-    ctx.strokeStyle = '#2F2A22';
-    ctx.lineWidth = BASE.arrowLineW / z;
-    ctx.stroke();
+    const glyphKind = resolveUnitGlyphKind(u);
+    drawUnitGlyph(ctx, glyphKind, 0.9 / z);
 
     ctx.restore();
 
