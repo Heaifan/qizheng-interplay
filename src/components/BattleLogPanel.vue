@@ -5,11 +5,11 @@ import { useGameStore } from '@/stores/gameStore';
 import UnitEditor from './UnitEditor.vue';
 
 const game = useGameStore();
-const { logs, uiPanelTab, highlightedUnitId } = storeToRefs(game);
+const { logs, visibleLogs, uiPanelTab, highlightedUnitId } = storeToRefs(game);
 const scrollRoot = useTemplateRef('scrollRoot');
 
 watch(
-  () => logs.value.length,
+  () => visibleLogs.value.length,
   async () => {
     await nextTick();
     const el = scrollRoot.value;
@@ -66,7 +66,7 @@ function entryRowClass(tone: string): string {
       </button>
     </div>
     <div v-show="uiPanelTab === 'log'" ref="scrollRoot" class="log-content">
-      <div v-for="(entry, i) in logs" :key="i" :class="entryRowClass(entry.tone)">
+      <div v-for="(entry, i) in visibleLogs" :key="i" :class="entryRowClass(entry.tone)">
         <span class="log-time">[{{ entry.timeLabel }}]</span><span class="log-tag">{{ eventTag(entry.tone) }}</span>
         <strong v-if="entry.unitId !== '系统'" :class="sideClass(entry.unitId)">{{ entry.unitId }}</strong>
         <span :class="entry.tone">{{ entry.text }}</span>

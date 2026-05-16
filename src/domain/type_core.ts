@@ -66,6 +66,8 @@ export interface ShotTrail {
 
 export interface LogEntry {
   timeLabel: string;
+  /** 仿真时间（ms），用于按时间过滤 */
+  timeMs: number;
   unitId: string;
   text: string;
   tone: LogTone;

@@ -35,7 +35,9 @@ export const useGameStore = defineStore('game', () => {
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
-      timeLabel: missionTimeLabel(simElapsedMs.value), unitId, text, tone,
+      timeLabel: missionTimeLabel(simElapsedMs.value),
+      timeMs: simElapsedMs.value,
+      unitId, text, tone,
     });
   }
 
@@ -86,9 +88,15 @@ export const useGameStore = defineStore('game', () => {
     return pathRedoStacks.value[activePlannerIdx.value]!.length > 0;
   });
 
+  /** 按当前仿真时间过滤日志，seek 时只显示到当前时刻的日志 */
+  const visibleLogs = computed(() =>
+    logs.value.filter((l) => l.timeMs <= simElapsedMs.value),
+  );
+
   session.initGame();
 
   return {
+    visibleLogs,
     mode, executionState, units, shots, logs, toolbarHighlight,
     highlightedUnitId, uiPanelTab, camera, interactionMode, ruler,
     renderSnapshot: derived.renderSnapshot,
