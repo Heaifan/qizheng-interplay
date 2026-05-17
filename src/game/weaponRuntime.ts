@@ -1,5 +1,6 @@
 import type { WeaponRuntimeState, RuntimeUnit } from '@/domain/types';
 import { getWeaponById } from '@/domain/weaponRegistry';
+import { getSuppressionFireIntervalMultiplier } from './suppression';
 
 export function createWeaponRuntimeState(weaponId: string): WeaponRuntimeState {
   const weapon = getWeaponById(weaponId);
@@ -57,9 +58,10 @@ export function tryConsumeShot(
   const consume = Math.min(rounds, state.ammoInMagazine);
   state.ammoInMagazine -= consume;
 
-  // Set next shot time (burst interval for auto, shot interval for single)
+  // Set next shot time with suppression fire-rate penalty
   const interval = weapon.shotIntervalMs ?? 1000;
-  state.nextShotAtMs = now + interval;
+  const fireRateMult = getSuppressionFireIntervalMultiplier(unit);
+  state.nextShotAtMs = now + interval * fireRateMult;
 
   return { canFire: true, reason: 'fire', rounds: consume };
 }

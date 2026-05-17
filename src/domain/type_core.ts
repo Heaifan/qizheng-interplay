@@ -60,6 +60,18 @@ export interface RuntimeUnit extends UnitTemplate {
   /** Last actual shot direction, used for debug/trail reference only */
   fireAngle: number;
   lastFireTime: number;
+  /** 压制值 0~1 */
+  suppression: number;
+  /** 本次战斗峰值压制 */
+  peakSuppression: number;
+  /** 累计造成压制值 */
+  suppressionDealt: number;
+  /** 累计受到压制值 */
+  suppressionReceived: number;
+  /** 受压制事件次数 */
+  suppressionHitCount: number;
+  /** 上次被压制时间（ms） */
+  lastSuppressedAtMs?: number;
   combatProfile: CombatProfile;
 }
 

@@ -3,6 +3,7 @@ import { SHOT_ALPHA_DECAY } from '@/domain/constants';
 import type { GameMode, LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { advanceUnitAlongPath } from '@/game/movement';
 import { updateTacticalFacing } from '@/game/facing';
+import { decaySuppression } from '@/game/suppression';
 
 const SIM_STEP_MS = 1000 / 60;
 
@@ -26,6 +27,7 @@ export function createExecutionActions(d: ExecutionDeps) {
   function runSimulationTick(): void {
     debugTickCount++;
     d.simElapsedMs.value += SIM_STEP_MS;
+    for (const u of d.units.value) decaySuppression(u, SIM_STEP_MS);
     for (let i = d.shots.value.length - 1; i >= 0; i--) {
       const s = d.shots.value[i]!;
       s.alpha -= SHOT_ALPHA_DECAY;

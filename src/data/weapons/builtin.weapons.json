@@ -28,7 +28,8 @@
     "shotIntervalMs": 1600,
     "reloadTimeMs": 4200,
     "fireMode": "single",
-    "burstSize": 1
+    "burstSize": 1,
+    "suppressionPower": 0.025
   },
   {
     "id": "m91-30",
@@ -59,7 +60,8 @@
     "shotIntervalMs": 1700,
     "reloadTimeMs": 4300,
     "fireMode": "single",
-    "burstSize": 1
+    "burstSize": 1,
+    "suppressionPower": 0.025
   },
   {
     "id": "type-38",
@@ -121,7 +123,8 @@
     "shotIntervalMs": 650,
     "reloadTimeMs": 2600,
     "fireMode": "semi",
-    "burstSize": 1
+    "burstSize": 1,
+    "suppressionPower": 0.035
   },
   {
     "id": "mp40",
@@ -152,7 +155,8 @@
     "shotIntervalMs": 500,
     "reloadTimeMs": 3000,
     "fireMode": "auto",
-    "burstSize": 3
+    "burstSize": 3,
+    "suppressionPower": 0.055
   },
   {
     "id": "ppsh-41",
@@ -183,7 +187,8 @@
     "shotIntervalMs": 450,
     "reloadTimeMs": 3200,
     "fireMode": "auto",
-    "burstSize": 4
+    "burstSize": 4,
+    "suppressionPower": 0.065
   },
   {
     "id": "mg34",
@@ -214,7 +219,8 @@
     "shotIntervalMs": 700,
     "reloadTimeMs": 4500,
     "fireMode": "auto",
-    "burstSize": 5
+    "burstSize": 5,
+    "suppressionPower": 0.120
   },
   {
     "id": "zb26",
@@ -245,6 +251,7 @@
     "shotIntervalMs": 800,
     "reloadTimeMs": 3600,
     "fireMode": "auto",
-    "burstSize": 4
+    "burstSize": 4,
+    "suppressionPower": 0.100
   }
 ]

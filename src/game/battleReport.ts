@@ -13,6 +13,11 @@ export interface BattleReportUnit {
   shotsFired: number;
   hits: number;
   totalDamage: number;
+  suppression: number;
+  peakSuppression: number;
+  suppressionDealt: number;
+  suppressionReceived: number;
+  suppressionHitCount: number;
 }
 
 export interface BattleReport {
@@ -60,6 +65,11 @@ export function buildBattleReport(input: {
       weaponName: weapon?.displayName ?? weapon?.name ?? '?',
       finalHp: u.hp,
       finalHpPct: u.dead ? 0 : Math.round((u.hp / 100) * 100),
+      suppression: u.suppression ?? 0,
+      peakSuppression: u.peakSuppression ?? 0,
+      suppressionDealt: u.suppressionDealt ?? 0,
+      suppressionReceived: u.suppressionReceived ?? 0,
+      suppressionHitCount: u.suppressionHitCount ?? 0,
       ...stats,
     };
   });
@@ -117,12 +127,24 @@ export function reportToMarkdown(report: BattleReport): string {
   lines.push('');
 
   lines.push('## 火力统计\n');
-  lines.push(`| 阵营 | 单位 | 武器 | 开火事件 | 命中次数 | 命中率 | 总伤害 | 命中均伤 |`);
-  lines.push(`| --- | --- | --- | ---:| ---:| ---:| ---:| ---:|`);
+  lines.push(`| 阵营 | 单位 | 武器 | 开火事件 | 命中次数 | 命中率 | 总伤害 | 命中均伤 | 最终压制 |`);
+  lines.push(`| --- | --- | --- | ---:| ---:| ---:| ---:| ---:| ---:|`);
   for (const u of report.units) {
     const hitRate = u.shotsFired > 0 ? ((u.hits / u.shotsFired) * 100).toFixed(1) : '-';
     const avgDmg = u.hits > 0 ? (u.totalDamage / u.hits).toFixed(1) : '-';
-    lines.push(`| ${u.faction === 'blue' ? '蓝方' : '红方'} | ${u.displayName} | ${u.weaponName} | ${u.shotsFired} | ${u.hits} | ${hitRate}% | ${u.totalDamage} | ${avgDmg} |`);
+    const supLabel = u.suppression > 0.75 ? '强压制' : u.suppression > 0.45 ? '中度' : u.suppression > 0.20 ? '轻度' : '无';
+    lines.push(`| ${u.faction === 'blue' ? '蓝方' : '红方'} | ${u.displayName} | ${u.weaponName} | ${u.shotsFired} | ${u.hits} | ${hitRate}% | ${u.totalDamage} | ${avgDmg} | ${(u.suppression * 100).toFixed(0)}% ${supLabel} |`);
+  }
+  lines.push('');
+
+  lines.push('## 压制统计\n');
+  lines.push(`| 阵营 | 单位 | 最终压制 | 峰值压制 | 造成压制 | 受到压制 | 受压次数 | 命中影响 | 射速影响 |`);
+  lines.push(`| --- | --- | ---:| ---:| ---:| ---:| ---:| ---:| ---:|`);
+  for (const u of report.units) {
+    const supLabel = u.suppression > 0.75 ? '强压制' : u.suppression > 0.45 ? '中度' : u.suppression > 0.20 ? '轻度' : '无';
+    const hitMult = Math.max(0.55, 1 - u.suppression * 0.45);
+    const fireRateMult = 1 + u.suppression * 0.60;
+    lines.push(`| ${u.faction === 'blue' ? '蓝方' : '红方'} | ${u.displayName} | ${(u.suppression * 100).toFixed(0)}% ${supLabel} | ${(u.peakSuppression * 100).toFixed(0)}% | ${u.suppressionDealt.toFixed(2)} | ${u.suppressionReceived.toFixed(2)} | ${u.suppressionHitCount} | ×${hitMult.toFixed(2)} | ×${fireRateMult.toFixed(2)} |`);
   }
   lines.push('');
 

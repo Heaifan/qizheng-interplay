@@ -5,6 +5,7 @@ import { calculateFireOutput } from '@/domain/fireOutput';
 import { formatFireOutputTag } from '@/domain/fireOutputFormat';
 import { getWeaponById } from '@/domain/weaponCatalog';
 import { tryConsumeShot } from './weaponRuntime';
+import { calculateSuppressionGain, applySuppression, getSuppressionAccuracyMultiplier } from './suppression';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
 export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
@@ -78,10 +79,9 @@ export function createCombatActions(d: CombatDeps) {
 
     const burstDmgMult = rounds > 1 ? 1 + Math.min(rounds - 1, 6) * 0.10 : 1;
     const burstSupMult = rounds > 1 ? 1 + Math.min(rounds - 1, 8) * 0.25 : 1;
-    const effSup = ctx.firePressure * burstSupMult;
     const multStr = rounds > 1
-      ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}｜有效压制 ${effSup.toFixed(2)}`
-      : `｜有效压制 ${effSup.toFixed(2)}`;
+      ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}`
+      : '';
 
     const logBase =
       `${fireWeapon.name} 开火${roundsStr}${ammoStr}${multStr}` +
@@ -102,7 +102,26 @@ export function createCombatActions(d: CombatDeps) {
 
     const foTag = formatFireOutputTag(fireOutput.value, fireOutput.outputProfileLabel, fireOutput.rangeBand, fireOutput.protectionLevel);
 
-    const hit = Math.random() < ctx.hitChance;
+    const suppressionAccMult = getSuppressionAccuracyMultiplier(attacker);
+    const effectiveHitChance = ctx.hitChance * suppressionAccMult;
+
+    const hit = Math.random() < effectiveHitChance;
+
+    const suppressionGain = calculateSuppressionGain({
+      firePressure: ctx.firePressure,
+      rounds,
+      fireMode: fireWeapon.fireMode,
+      hit,
+      distanceFactor: ctx.distanceModifier,
+      weaponSuppressionPower: fireWeapon.suppressionPower,
+    });
+
+    applySuppression(target, suppressionGain, now);
+    attacker.suppressionDealt += suppressionGain;
+    target.suppressionReceived += suppressionGain;
+    target.suppressionHitCount++;
+    const supLog = `｜压制+${suppressionGain.toFixed(2)}｜${target.id}压制${target.suppression.toFixed(2)}`;
+
     if (hit) {
       const baseDamage = 24;
       const randomSwing = 0.85 + Math.random() * 0.3;
@@ -110,14 +129,14 @@ export function createCombatActions(d: CombatDeps) {
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;
-        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害，击毙`, 'log-kill');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害，击毙${supLog}`, 'log-kill');
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害`, 'log-hit');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害${supLog}`, 'log-hit');
       }
     } else {
-      d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中`, 'log-miss');
+      d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中${supLog}`, 'log-miss');
     }
   }
 

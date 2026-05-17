@@ -66,6 +66,8 @@ export interface WeaponProfile {
   burstSize?: number;
   /** 点射内子弹间隔（ms） */
   burstIntervalMs?: number;
+  /** 压制能力（每次射击基础压制值） */
+  suppressionPower?: number;
 }
 
 export interface WeaponDerivedStats {

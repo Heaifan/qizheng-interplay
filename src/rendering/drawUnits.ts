@@ -99,12 +99,12 @@ export function drawUnits(
       ctx.stroke();
     }
 
-    // weapon glyph rotated with aim direction (screen-stable size)
+    // weapon glyph (paths point UP, rotate +PI/2 to align with +X angle system)
     ctx.save();
-    ctx.rotate(u.aimAngle ?? u.angle);
+    ctx.rotate((u.aimAngle ?? u.angle) + Math.PI / 2);
     ctx.scale(1 / z, 1 / z);
     const glyphKind = resolveUnitGlyphKind(u);
-    drawUnitGlyph(ctx, glyphKind);
+    drawUnitGlyph(ctx, glyphKind, 0.78);
     ctx.restore();
 
     ctx.restore();

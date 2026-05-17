@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia';
 import { useGameStore } from '@/stores/gameStore';
 import { deriveWeaponStats } from '@/domain/weapon';
 import { formatEffectClass } from '@/domain/fireOutputFormat';
+import { getSuppressionLabel } from '@/game/suppression';
 import { listWeapons, getWeaponById } from '@/domain/weaponCatalog';
 import type { CombatProfile, WeaponAction } from '@/domain/types';
 import FireOutputChart from './FireOutputChart.vue';
@@ -30,6 +31,17 @@ function cloneProfile(p: CombatProfile): CombatProfile {
 const editing = reactive<CombatProfile>(cloneProfile(units.value[0]?.combatProfile ?? blankProfile()));
 
 const unitLabel = computed(() => units.value[selectedIdx.value]?.id ?? '');
+
+const selectedUnit = computed(() => units.value[selectedIdx.value] ?? null);
+
+const suppressionDisplay = computed(() => {
+  const u = selectedUnit.value;
+  if (!u) return null;
+  const s = u.suppression ?? 0;
+  const hitMult = Math.max(0.55, 1 - s * 0.45);
+  const fireRateMult = 1 + s * 0.60;
+  return { value: s, label: getSuppressionLabel(s), hitMult, fireRateMult };
+});
 
 function loadUnit(idx: number): void {
   const src = units.value[idx]?.combatProfile;
@@ -147,6 +159,22 @@ function factionLabel(): string {
         <span class="field-label">保障力</span>
         <input v-model.number="editing.forces.sustainment" type="number" min="0" max="100" class="field-num" />
       </div>
+    </div>
+
+    <!-- 压制状态卡片 -->
+    <div class="editor-card">
+      <div class="card-title">压制状态</div>
+      <div v-if="suppressionDisplay" class="suppression-grid">
+        <span class="field-label">压制值</span>
+        <span class="suppression-value">{{ suppressionDisplay.value.toFixed(2) }}</span>
+        <span class="field-label">状态</span>
+        <span class="suppression-label">{{ suppressionDisplay.label }}</span>
+        <span class="field-label">命中影响</span>
+        <span class="suppression-mult">&times;{{ suppressionDisplay.hitMult.toFixed(2) }}</span>
+        <span class="field-label">开火间隔</span>
+        <span class="suppression-mult">&times;{{ suppressionDisplay.fireRateMult.toFixed(2) }}</span>
+      </div>
+      <div v-else class="suppression-empty">无选中单位</div>
     </div>
 
     <!-- 武器挂载卡片（可折叠） -->
@@ -406,6 +434,40 @@ function factionLabel(): string {
   color: var(--derived-text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-weight: 700;
+}
+
+.suppression-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+  align-items: center;
+}
+
+.suppression-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  color: #E8C84A;
+  font-size: 15px;
+}
+
+.suppression-label {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+.suppression-mult {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  color: var(--derived-text);
+  font-size: 14px;
+}
+
+.suppression-empty {
+  color: var(--text-dim);
+  font-size: 13px;
+  text-align: center;
+  padding: 8px 0;
 }
 
 .apply-btn {
