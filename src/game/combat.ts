@@ -78,7 +78,10 @@ export function createCombatActions(d: CombatDeps) {
 
     const burstDmgMult = rounds > 1 ? 1 + Math.min(rounds - 1, 6) * 0.10 : 1;
     const burstSupMult = rounds > 1 ? 1 + Math.min(rounds - 1, 8) * 0.25 : 1;
-    const multStr = rounds > 1 ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}` : '';
+    const effSup = ctx.firePressure * burstSupMult;
+    const multStr = rounds > 1
+      ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}｜有效压制 ${effSup.toFixed(2)}`
+      : `｜有效压制 ${effSup.toFixed(2)}`;
 
     const logBase =
       `${fireWeapon.name} 开火${roundsStr}${ammoStr}${multStr}` +
