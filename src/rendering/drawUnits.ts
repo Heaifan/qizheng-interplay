@@ -99,9 +99,9 @@ export function drawUnits(
       ctx.stroke();
     }
 
-    // weapon glyph rotated with facing direction (screen-stable size)
+    // weapon glyph rotated with aim direction (screen-stable size)
     ctx.save();
-    ctx.rotate(u.angle);
+    ctx.rotate(u.aimAngle ?? u.angle);
     ctx.scale(1 / z, 1 / z);
     const glyphKind = resolveUnitGlyphKind(u);
     drawUnitGlyph(ctx, glyphKind);

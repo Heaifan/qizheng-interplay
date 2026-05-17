@@ -33,7 +33,7 @@ export function createExecutionActions(d: ExecutionDeps) {
     }
     for (const u of d.units.value) advanceUnitAlongPath(u);
     updateTacticalFacing(d.units.value);
-    const now = Date.now();
+    const now = d.simElapsedMs.value;
     const [blue, red] = d.units.value;
     if (blue && red && !blue.dead && !red.dead) {
       d.tryFire(blue, red, now);

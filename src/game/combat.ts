@@ -28,7 +28,11 @@ export function createCombatActions(d: CombatDeps) {
   function tryFire(attacker: RuntimeUnit, target: RuntimeUnit, now: number): void {
     if (attacker.dead || target.dead) return;
 
-    // Ammo/reload/cooldown check via weaponRuntime
+    // Step 1: Check range & fire arc before consuming ammo
+    const ctx = calculateDirectFireContext(attacker, target);
+    if (!ctx.inRange || !ctx.inFireArc) return;
+
+    // Step 2: Ammo/reload/cooldown check (uses sim time, not wall clock)
     const cycle = tryConsumeShot(attacker, now);
     if (!cycle.canFire) {
       if (cycle.reason === 'reloading') return;
@@ -40,9 +44,6 @@ export function createCombatActions(d: CombatDeps) {
       }
       return;
     }
-
-    const ctx = calculateDirectFireContext(attacker, target);
-    if (!ctx.inRange || !ctx.inFireArc) return;
 
     const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
     attacker.angle = targetBearing;
