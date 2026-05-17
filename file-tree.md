@@ -9,10 +9,10 @@
 
 ---
 
-## 当前版本更新日志 — v0.4.1.3
+## 当前版本更新日志 — v0.4.1.4
 
 > 发布日期：2026-05-16
-> Release：[v0.4.1.3](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.3)
+> Release：[v0.4.1.4](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.4)
 
 ### 调整
 - **兵牌武器符号定稿**：按新规范重绘 5 类图标（步枪单箭头 → 自动步枪 +1横 → 冲锋枪 +2横 → 轻机枪 +脚架 → 重机枪 +3横+脚架）
@@ -30,6 +30,7 @@
 ### 新增
 - 装填完成日志
 - 日志显示伤害倍率与压制倍率
+- **战斗报告导出**：`battleReport.ts` + `downloadText.ts`，右侧面板「导出」按钮生成 Markdown 文件（含参战单位、战损统计、完整日志）
 
 ---
 

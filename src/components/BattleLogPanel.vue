@@ -2,12 +2,29 @@
 import { storeToRefs } from 'pinia';
 import { useTemplateRef, watch, nextTick } from 'vue';
 import { useGameStore } from '@/stores/gameStore';
+import { buildBattleReport, reportToMarkdown } from '@/game/battleReport';
+import { downloadTextFile } from '@/utils/downloadText';
 import UnitEditor from './UnitEditor.vue';
 import CasualtyChart from './CasualtyChart.vue';
+
+const APP_VERSION = __APP_VERSION__;
 
 const game = useGameStore();
 const { logs, visibleLogs, uiPanelTab, highlightedUnitId, casualtySeries, simElapsedMs } = storeToRefs(game);
 const scrollRoot = useTemplateRef('scrollRoot');
+
+function exportMarkdown(): void {
+  const report = buildBattleReport({
+    version: APP_VERSION,
+    units: game.units,
+    logs: game.logs,
+    casualtySeries: casualtySeries.value,
+    simElapsedMs: simElapsedMs.value,
+  });
+  const md = reportToMarkdown(report);
+  const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+  downloadTextFile(`battle-report-${ts}.md`, md, 'text/markdown;charset=utf-8');
+}
 
 watch(
   () => visibleLogs.value.length,
@@ -64,6 +81,9 @@ function entryRowClass(tone: string): string {
         @click="selectTab('editor')"
       >
         单位档案
+      </button>
+      <button type="button" class="tab-btn export-btn" title="导出 Markdown 战斗报告" @click="exportMarkdown">
+        导出
       </button>
     </div>
     <div v-show="uiPanelTab === 'log'" ref="scrollRoot" class="log-content" style="flex:1;overflow-y:auto">
@@ -142,5 +162,14 @@ function entryRowClass(tone: string): string {
 
 .tab-btn:hover:not(.active) {
   color: var(--text-muted);
+}
+.export-btn {
+  flex: 0 0 auto;
+  padding: 10px 10px;
+  font-size: 12px;
+  color: var(--accent);
+}
+.export-btn:hover {
+  background: rgba(184, 138, 46, 0.08);
 }
 </style>
