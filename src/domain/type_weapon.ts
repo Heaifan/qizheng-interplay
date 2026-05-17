@@ -30,8 +30,9 @@ export type EffectClass =
   | 'satchel_charge' | 'bangalore_torpedo';
 
 export type WeaponIconKind =
-  | 'rifle' | 'rifle_bar' | 'rifle_multi' | 'smg'
-  | 'machine_gun' | 'mortar' | 'anti_tank' | 'artillery'
+  | 'rifle' | 'automatic_rifle' | 'submachine_gun'
+  | 'light_machine_gun' | 'heavy_machine_gun'
+  | 'mortar' | 'anti_tank' | 'artillery'
   | 'flamethrower' | 'engineer';
 
 export interface WeaponProfile {

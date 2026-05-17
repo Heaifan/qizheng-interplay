@@ -37,6 +37,11 @@ export function createCombatActions(d: CombatDeps) {
     if (!cycle.canFire) {
       if (cycle.reason === 'reloading') return;
       if (cycle.reason === 'cooldown') return;
+      if (cycle.reason === 'reload_complete') {
+        const weapon = getWeaponById(attacker.weaponId);
+        d.addLog(attacker.id, `${weapon?.displayName ?? '武器'} 装填完成｜${weapon?.magazineSize ?? '?'}/${weapon?.magazineSize ?? '?'}`, 'log-system');
+        return;
+      }
       if (cycle.reason === 'start_reload') {
         const weapon = getWeaponById(attacker.weaponId);
         d.addLog(attacker.id, `${weapon?.displayName ?? '武器'} 开始装填（${((weapon?.reloadTimeMs ?? 3000) / 1000).toFixed(1)}s）`, 'log-system');
@@ -71,8 +76,12 @@ export function createCombatActions(d: CombatDeps) {
     const roundsStr = rounds > 1 ? `｜点射${rounds}发` : '';
     const ammoStr = state ? `｜弹仓 ${state.ammoInMagazine}/${fireWeapon.magazineSize ?? '?'}` : '';
 
+    const burstDmgMult = rounds > 1 ? 1 + Math.min(rounds - 1, 6) * 0.10 : 1;
+    const burstSupMult = rounds > 1 ? 1 + Math.min(rounds - 1, 8) * 0.25 : 1;
+    const multStr = rounds > 1 ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}` : '';
+
     const logBase =
-      `${fireWeapon.name} 开火${roundsStr}${ammoStr}` +
+      `${fireWeapon.name} 开火${roundsStr}${ammoStr}${multStr}` +
       `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
       `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
       `｜距离×${ctx.distanceModifier.toFixed(2)}` +
@@ -94,7 +103,7 @@ export function createCombatActions(d: CombatDeps) {
     if (hit) {
       const baseDamage = 24;
       const randomSwing = 0.85 + Math.random() * 0.3;
-      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing * Math.sqrt(rounds)));
+      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing * burstDmgMult));
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;

@@ -1,6 +1,6 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.4.1.3
+> **当前版本：** v0.4.1.4
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-05-16 17:02
 
@@ -9,7 +9,31 @@
 
 ---
 
-## 当前版本更新日志 — v0.4.1.2
+## 当前版本更新日志 — v0.4.1.3
+
+> 发布日期：2026-05-16
+> Release：[v0.4.1.3](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.3)
+
+### 调整
+- **兵牌武器符号定稿**：按新规范重绘 5 类图标（步枪单箭头 → 自动步枪 +1横 → 冲锋枪 +2横 → 轻机枪 +脚架 → 重机枪 +3横+脚架）
+- `WeaponIconKind` 统一为 `rifle/automatic_rifle/submachine_gun/light_machine_gun/heavy_machine_gun`
+- 自动武器改为点射事件模型，`shotIntervalMs` 表示点射间隔
+- MG34/ZB26 等武器参数调整为点射间隔（700-800ms）
+
+### 修复
+- **MG34 瞬秒修复**：删除 `sqrt(rounds)` 伤害放大，改为 `burstDmgMult` 线性增量（5 发=×1.40）
+- 点射伤害与压制倍率分离，压制倍率更高（5 发=×2.00）
+- 使用仿真时间（`simElapsedMs`）而非 `Date.now()`
+- 先判射程/射界再扣弹
+- glyph 使用 `aimAngle` 而非 `angle`
+
+### 新增
+- 装填完成日志
+- 日志显示伤害倍率与压制倍率
+
+---
+
+## 前版更新日志 — v0.4.1.2
 
 > 发布日期：2026-05-16
 > Release：[v0.4.1.2](https://github.com/Heaifan/qizheng-interplay/releases/tag/v0.4.1.2)

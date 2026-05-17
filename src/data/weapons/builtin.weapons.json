@@ -27,7 +27,8 @@
     "magazineSize": 5,
     "shotIntervalMs": 1600,
     "reloadTimeMs": 4200,
-    "fireMode": "single"
+    "fireMode": "single",
+    "burstSize": 1
   },
   {
     "id": "m91-30",
@@ -57,7 +58,8 @@
     "magazineSize": 5,
     "shotIntervalMs": 1700,
     "reloadTimeMs": 4300,
-    "fireMode": "single"
+    "fireMode": "single",
+    "burstSize": 1
   },
   {
     "id": "type-38",
@@ -85,9 +87,10 @@
       "ww2"
     ],
     "magazineSize": 5,
-    "shotIntervalMs": 1600,
-    "reloadTimeMs": 4000,
-    "fireMode": "single"
+    "shotIntervalMs": 1700,
+    "reloadTimeMs": 4300,
+    "fireMode": "single",
+    "burstSize": 1
   },
   {
     "id": "m1-garand",
@@ -106,7 +109,7 @@
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "半自动步枪手",
-    "iconKind": "rifle_bar",
+    "iconKind": "automatic_rifle",
     "tags": [
       "direct_fire",
       "semi_auto",
@@ -117,7 +120,8 @@
     "magazineSize": 8,
     "shotIntervalMs": 650,
     "reloadTimeMs": 2600,
-    "fireMode": "semi"
+    "fireMode": "semi",
+    "burstSize": 1
   },
   {
     "id": "mp40",
@@ -136,7 +140,7 @@
     "effectClass": "submachinegun_round",
     "outputProfileId": "smg_direct",
     "roleLabel": "冲锋枪手",
-    "iconKind": "smg",
+    "iconKind": "submachine_gun",
     "tags": [
       "direct_fire",
       "auto",
@@ -145,11 +149,10 @@
       "ww2"
     ],
     "magazineSize": 32,
-    "shotIntervalMs": 130,
+    "shotIntervalMs": 500,
     "reloadTimeMs": 3000,
     "fireMode": "auto",
-    "burstSize": 3,
-    "burstIntervalMs": 90
+    "burstSize": 3
   },
   {
     "id": "ppsh-41",
@@ -168,7 +171,7 @@
     "effectClass": "submachinegun_round",
     "outputProfileId": "smg_direct",
     "roleLabel": "冲锋枪手",
-    "iconKind": "smg",
+    "iconKind": "submachine_gun",
     "tags": [
       "direct_fire",
       "auto",
@@ -176,12 +179,11 @@
       "ussr",
       "ww2"
     ],
-    "magazineSize": 71,
-    "shotIntervalMs": 110,
+    "magazineSize": 35,
+    "shotIntervalMs": 450,
     "reloadTimeMs": 3200,
     "fireMode": "auto",
-    "burstSize": 4,
-    "burstIntervalMs": 85
+    "burstSize": 4
   },
   {
     "id": "mg34",
@@ -200,7 +202,7 @@
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "机枪手",
-    "iconKind": "machine_gun",
+    "iconKind": "light_machine_gun",
     "tags": [
       "direct_fire",
       "auto",
@@ -209,11 +211,10 @@
       "ww2"
     ],
     "magazineSize": 50,
-    "shotIntervalMs": 85,
+    "shotIntervalMs": 700,
     "reloadTimeMs": 4500,
     "fireMode": "auto",
-    "burstSize": 5,
-    "burstIntervalMs": 80
+    "burstSize": 5
   },
   {
     "id": "zb26",
@@ -232,7 +233,7 @@
     "effectClass": "full_power_rifle",
     "outputProfileId": "full_power_rifle_direct",
     "roleLabel": "机枪手",
-    "iconKind": "machine_gun",
+    "iconKind": "light_machine_gun",
     "tags": [
       "direct_fire",
       "auto",
@@ -241,10 +242,9 @@
       "ww2"
     ],
     "magazineSize": 20,
-    "shotIntervalMs": 100,
-    "reloadTimeMs": 3500,
+    "shotIntervalMs": 800,
+    "reloadTimeMs": 3600,
     "fireMode": "auto",
-    "burstSize": 4,
-    "burstIntervalMs": 90
+    "burstSize": 4
   }
 ]

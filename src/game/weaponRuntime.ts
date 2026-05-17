@@ -33,6 +33,7 @@ export function tryConsumeShot(
     if (now >= state.reloadFinishAtMs) {
       state.isReloading = false;
       state.ammoInMagazine = weapon.magazineSize ?? 1;
+      return { canFire: false, reason: 'reload_complete' };
     } else {
       return { canFire: false, reason: 'reloading' };
     }
