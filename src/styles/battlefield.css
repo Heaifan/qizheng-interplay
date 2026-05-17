@@ -1,23 +1,26 @@
 .tactical-map {
-  background: #dcedc8;
-  border: 2px solid #558b2f;
+  background: var(--map-bg);
+  border: 2px solid var(--map-border);
   border-radius: 4px;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 18px rgba(72, 60, 36, 0.18);
   cursor: default;
   display: block;
-  width: min(800px, calc(100vw - 390px));
+  width: min(800px, calc(100vw - 450px));
   max-height: calc(100vh - 240px);
   height: auto;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .unit-context-menu {
   position: fixed;
   z-index: 999;
   min-width: 110px;
-  background: #263238;
-  border: 1px solid #4f5b62;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
   border-radius: 6px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 6px 16px rgba(72, 60, 36, 0.2);
   overflow: hidden;
 }
 
@@ -25,7 +28,7 @@
   width: 100%;
   border: none;
   background: transparent;
-  color: #eceff1;
+  color: var(--text-main);
   text-align: left;
   padding: 9px 12px;
   cursor: pointer;
@@ -33,5 +36,5 @@
 }
 
 .unit-context-item:hover {
-  background: #37474f;
+  background: var(--panel-card);
 }

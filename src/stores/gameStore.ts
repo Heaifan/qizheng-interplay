@@ -1,6 +1,9 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
-import type { GameMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
+import type { CameraState } from '@/domain/camera';
+import { DEFAULT_ZOOM } from '@/domain/camera';
+import type { GameMode, InteractionMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
+import type { RulerState } from '@/game/ruler';
 import { createCombatActions, missionTimeLabel } from '@/game/combat';
 import { createPathEditActions } from '@/game/path-editing';
 import { createTimelineActions, type TimelineFrame } from '@/game/timeline';
@@ -8,6 +11,7 @@ import { createSessionActions } from './session';
 import { createExecutionActions } from './execution';
 import { createPlaybackActions } from './playback';
 import { createDerivedState } from './derived';
+import { buildCasualtySeries, computeInitialHpTotals } from '@/game/casualtyStats';
 
 export const useGameStore = defineStore('game', () => {
   type ExecutionState = 'stopped' | 'running' | 'paused';
@@ -26,10 +30,15 @@ export const useGameStore = defineStore('game', () => {
   const toolbarHighlight = ref<'blue' | 'red' | 'exec' | null>(null);
   const highlightedUnitId = ref<string | null>(null);
   const uiPanelTab = ref<'log' | 'editor'>('log');
+  const camera = ref<CameraState>({ zoom: DEFAULT_ZOOM, offsetX: 0, offsetY: 0 });
+  const interactionMode = ref<InteractionMode>('browse');
+  const ruler = ref<RulerState>({ active: false, visible: false, start: null, end: null });
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
-      timeLabel: missionTimeLabel(simElapsedMs.value), unitId, text, tone,
+      timeLabel: missionTimeLabel(simElapsedMs.value),
+      timeMs: simElapsedMs.value,
+      unitId, text, tone,
     });
   }
 
@@ -43,11 +52,15 @@ export const useGameStore = defineStore('game', () => {
     units, shots, logs, mode, simElapsedMs, executionState, timeline, timelineIndex,
   });
   const session = createSessionActions({
-    mode, executionState, activePlannerIdx, units, pathUndoStacks, pathRedoStacks,
+    mode, executionState, activePlannerIdx, highlightedUnitId, uiPanelTab,
+    units, pathUndoStacks, pathRedoStacks,
     shots, logs, timeline, timelineIndex, simElapsedMs, toolbarHighlight,
     takeSnapshot: tl.takeSnapshot, addLog,
   });
-  const playbackMin = computed(() => 0);
+  const EXEC_START_IDX = 1;
+  const playbackMin = computed(() =>
+    timeline.value.length > EXEC_START_IDX ? EXEC_START_IDX : 0,
+  );
   const playbackMax = computed(() => Math.max(0, timeline.value.length - 1));
   const exec = createExecutionActions({
     mode, executionState, units, shots, logs, simElapsedMs, toolbarHighlight,
@@ -64,9 +77,9 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode, highlightedUnitId });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera, ruler });
 
-  const canStepBack = computed(() => timelineIndex.value > 0);
+  const canStepBack = computed(() => timelineIndex.value > playbackMin.value);
   const canStepForward = computed(() =>
     timelineIndex.value < timeline.value.length - 1 || mode.value === 'executing',
   );
@@ -79,16 +92,33 @@ export const useGameStore = defineStore('game', () => {
     return pathRedoStacks.value[activePlannerIdx.value]!.length > 0;
   });
 
+  /** 按当前仿真时间过滤日志，seek 时只显示到当前时刻的日志 */
+  const visibleLogs = computed(() =>
+    logs.value.filter((l) => l.timeMs <= simElapsedMs.value),
+  );
+
+  /** 战损统计序列：从执行基线帧开始 */
+  const casualtySeries = computed(() => {
+    const start = playbackMin.value;
+    const frames = timeline.value.slice(start);
+    if (frames.length === 0) return [];
+    const initialHp = computeInitialHpTotals(frames[0]!.units);
+    return buildCasualtySeries(frames, initialHp);
+  });
+
   session.initGame();
 
   return {
-    mode, executionState, units, shots, logs, toolbarHighlight,
-    highlightedUnitId, uiPanelTab,
+    visibleLogs,
+    casualtySeries,
+    mode, executionState, units, shots, logs, simElapsedMs, toolbarHighlight,
+    highlightedUnitId, uiPanelTab, camera, interactionMode, ruler,
     renderSnapshot: derived.renderSnapshot,
     canStepBack, canStepForward, canUndoPathEdit, canRedoPathEdit,
     playbackMin, playbackMax, timelineIndex,
     initGame: session.initGame,
     selectPlannerByPoint: session.selectPlannerByPoint,
+    selectUnitForInspectByPoint: session.selectUnitForInspectByPoint,
     beginPathAt: pathEdit.beginPathAt,
     extendPathIfFarEnough: pathEdit.extendPathIfFarEnough,
     finalizePathDrawing: pathEdit.finalizePathDrawing,
@@ -100,6 +130,17 @@ export const useGameStore = defineStore('game', () => {
     stepBackward: playback.stepBackward,
     stepForward: playback.stepForward,
     seekTimeline: playback.seekTimeline,
+    seekToFrame: playback.seekToFrame,
+    rewindToStart: playback.rewindToStart,
+    togglePlayback: () => {
+      if (mode.value !== 'executing') {
+        exec.startExecution();
+      } else if (executionState.value === 'running') {
+        exec.pauseExecution();
+      } else {
+        exec.resumeExecution();
+      }
+    },
     resetSandbox: session.initGame,
     tick: exec.tick,
   };

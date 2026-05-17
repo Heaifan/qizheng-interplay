@@ -29,7 +29,12 @@ export function createTimelineActions(d: TimelineDeps) {
     simElapsedMs: number,
   ): TimelineFrame {
     return {
-      units: units.map((u) => ({ ...u, path: u.path.map((p) => ({ ...p })) })),
+      units: units.map((u) => ({
+        ...u,
+        path: u.path.map((p) => ({ ...p })),
+        combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
+        weaponState: { ...u.weaponState },
+      })),
       shots: shots.map((s) => ({ ...s })),
       logs: logs.map((l) => ({ ...l })),
       mode,
@@ -46,7 +51,10 @@ export function createTimelineActions(d: TimelineDeps) {
 
   function restoreFrame(frame: TimelineFrame): void {
     d.units.value = frame.units.map((u) => ({
-      ...u, path: u.path.map((p) => ({ ...p })),
+      ...u,
+      path: u.path.map((p) => ({ ...p })),
+      combatProfile: JSON.parse(JSON.stringify(u.combatProfile)),
+      weaponState: { ...u.weaponState },
     }));
     d.shots.value = frame.shots.map((s) => ({ ...s }));
     d.logs.value = frame.logs.map((l) => ({ ...l }));
@@ -57,9 +65,21 @@ export function createTimelineActions(d: TimelineDeps) {
 
   function persistBaselineFrame(): void {
     const f = takeSnapshot();
-    if (d.timeline.value.length === 0) d.timeline.value.push(f);
-    else d.timeline.value[0] = f;
-    d.timelineIndex.value = 0;
+    // If timeline is empty, push frame[0] (initial state) and frame[1] (pre-exec baseline)
+    if (d.timeline.value.length === 0) {
+      d.timeline.value.push(takeSnapshot());
+      d.timeline.value.push(f);
+      d.timelineIndex.value = 1;
+    } else if (d.timeline.value.length === 1) {
+      // frame[0] exists (initial state), push baseline as frame[1]
+      d.timeline.value.push(f);
+      d.timelineIndex.value = 1;
+    } else {
+      // Replace baseline at index 1, keep frame[0] as true initial state
+      d.timeline.value[1] = f;
+      d.timeline.value = d.timeline.value.slice(0, 2);
+      d.timelineIndex.value = 1;
+    }
   }
 
   function commitTimelineFrame(): void {
@@ -68,9 +88,11 @@ export function createTimelineActions(d: TimelineDeps) {
     }
     d.timeline.value.push(takeSnapshot());
     d.timelineIndex.value = d.timeline.value.length - 1;
-    if (d.timeline.value.length > 1200) {
-      d.timeline.value.shift();
-      d.timelineIndex.value = Math.max(0, d.timelineIndex.value - 1);
+    const MAX_FRAMES = 1200;
+    const PRESERVED_HEAD = 2; // keep frame[0] (initial) and frame[1] (exec baseline)
+    if (d.timeline.value.length > MAX_FRAMES) {
+      d.timeline.value.splice(PRESERVED_HEAD, 1);
+      d.timelineIndex.value = Math.max(PRESERVED_HEAD, d.timelineIndex.value - 1);
     }
   }
 

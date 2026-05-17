@@ -1,11 +1,13 @@
 import type { Ref } from 'vue';
-import { BUSHES, COVERS } from '@/domain/terrain';
-import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
+import { bearingBetween } from '@/domain/angles';
+import { calculateDirectFireContext } from './combatFormula';
+import { calculateFireOutput } from '@/domain/fireOutput';
+import { formatFireOutputTag } from '@/domain/fireOutputFormat';
+import { getWeaponById } from '@/domain/weaponCatalog';
+import { tryConsumeShot } from './weaponRuntime';
 import type { LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 
-export const FIRE_COOLDOWN_MS = 550;
-export const MAX_RANGE = 900;
-export const BASE_HIT_CHANCE = 0.75;
+export const FIRE_ARC_HALF_RAD = (60 * Math.PI) / 360;
 
 export function missionTimeLabel(elapsedMs: number): string {
   const sec = Math.max(0, Math.floor(elapsedMs / 1000));
@@ -25,46 +27,97 @@ export interface CombatDeps {
 export function createCombatActions(d: CombatDeps) {
   function tryFire(attacker: RuntimeUnit, target: RuntimeUnit, now: number): void {
     if (attacker.dead || target.dead) return;
-    const dx = target.x - attacker.x;
-    const dy = target.y - attacker.y;
-    attacker.fireAngle = Math.atan2(dy, dx);
-    const distance = Math.hypot(dx, dy);
-    if (distance > MAX_RANGE) return;
-    if (now - attacker.lastFireTime < FIRE_COOLDOWN_MS) return;
 
-    attacker.lastFireTime = now;
+    // Step 1: Check range & fire arc before consuming ammo
+    const ctx = calculateDirectFireContext(attacker, target);
+    if (!ctx.inRange || !ctx.inFireArc) return;
 
-    const blocked = segmentBlockedByAnyCover(
-      attacker.x, attacker.y, target.x, target.y, COVERS,
-    );
-    const throughBush = segmentNearAnyBush(
-      attacker.x, attacker.y, target.x, target.y, BUSHES,
-    );
+    // Step 2: Ammo/reload/cooldown check (uses sim time, not wall clock)
+    const cycle = tryConsumeShot(attacker, now);
+    if (!cycle.canFire) {
+      if (cycle.reason === 'reloading') return;
+      if (cycle.reason === 'cooldown') return;
+      if (cycle.reason === 'reload_complete') {
+        const weapon = getWeaponById(attacker.weaponId);
+        d.addLog(attacker.id, `${weapon?.displayName ?? '武器'} 装填完成｜${weapon?.magazineSize ?? '?'}/${weapon?.magazineSize ?? '?'}`, 'log-system');
+        return;
+      }
+      if (cycle.reason === 'start_reload') {
+        const weapon = getWeaponById(attacker.weaponId);
+        d.addLog(attacker.id, `${weapon?.displayName ?? '武器'} 开始装填（${((weapon?.reloadTimeMs ?? 3000) / 1000).toFixed(1)}s）`, 'log-system');
+        return;
+      }
+      return;
+    }
 
-    let hitChance = BASE_HIT_CHANCE;
-    if (blocked) hitChance *= 0.25;
-    if (throughBush) hitChance *= 0.6;
+    const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
+    attacker.angle = targetBearing;
+    attacker.aimAngle = targetBearing;
+    attacker.fireAngle = targetBearing;
+    const threatBearing = bearingBetween(target.x, target.y, attacker.x, attacker.y);
+    target.angle = threatBearing;
+    target.aimAngle = threatBearing;
 
-    const hit = Math.random() < hitChance;
     d.shots.value.push({
       x1: attacker.x, y1: attacker.y,
       x2: target.x, y2: target.y,
-      color: attacker.stroke, alpha: 1, blocked,
+      color: attacker.stroke, alpha: 1, blocked: ctx.blocked,
     });
 
+    const fireWeapon = getWeaponById(attacker.weaponId) ?? attacker.combatProfile.weapon;
+    const state = attacker.weaponState;
+
+    const modParts: string[] = [];
+    if (ctx.blocked) modParts.push('遮挡');
+    if (ctx.throughBush) modParts.push('灌木');
+    const modStr = modParts.length ? `｜${modParts.join('/')}` : '';
+
+    const rounds = cycle.rounds ?? 1;
+    const roundsStr = rounds > 1 ? `｜点射${rounds}发` : '';
+    const ammoStr = state ? `｜弹仓 ${state.ammoInMagazine}/${fireWeapon.magazineSize ?? '?'}` : '';
+
+    const burstDmgMult = rounds > 1 ? 1 + Math.min(rounds - 1, 6) * 0.10 : 1;
+    const burstSupMult = rounds > 1 ? 1 + Math.min(rounds - 1, 8) * 0.25 : 1;
+    const effSup = ctx.firePressure * burstSupMult;
+    const multStr = rounds > 1
+      ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}｜有效压制 ${effSup.toFixed(2)}`
+      : `｜有效压制 ${effSup.toFixed(2)}`;
+
+    const logBase =
+      `${fireWeapon.name} 开火${roundsStr}${ammoStr}${multStr}` +
+      `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
+      `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
+      `｜距离×${ctx.distanceModifier.toFixed(2)}` +
+      `｜专注×${ctx.focusModifier.toFixed(2)}` +
+      `｜打击×${ctx.strikeModifier.toFixed(2)}` +
+      `${modStr}` +
+      `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
+      `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
+
+    const fireOutput = calculateFireOutput(fireWeapon, {
+      rangeM: ctx.distance,
+      targetType: 'personnel',
+      protectionLevel: ctx.blocked ? 'medium_cover' : 'none',
+    });
+
+    const foTag = formatFireOutputTag(fireOutput.value, fireOutput.outputProfileLabel, fireOutput.rangeBand, fireOutput.protectionLevel);
+
+    const hit = Math.random() < ctx.hitChance;
     if (hit) {
-      const damage = 16 + Math.floor(Math.random() * 15);
+      const baseDamage = 24;
+      const randomSwing = 0.85 + Math.random() * 0.3;
+      const damage = Math.max(1, Math.round(baseDamage * fireOutput.value * randomSwing * burstDmgMult));
       target.hp = Math.max(0, target.hp - damage);
       if (target.hp === 0) {
         target.dead = true;
-        d.addLog(attacker.id, `击毙 ${target.id}`, 'log-kill');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害，击毙`, 'log-kill');
         d.mode.value = 'gameover';
         d.executionState.value = 'stopped';
       } else {
-        d.addLog(attacker.id, `命中 ${target.id} -${damage}HP`, 'log-hit');
+        d.addLog(attacker.id, `→ ${target.id}：${logBase}｜${foTag}｜命中，造成 ${damage} 伤害`, 'log-hit');
       }
     } else {
-      d.addLog(attacker.id, `射击 ${target.id} 未命中`, 'log-miss');
+      d.addLog(attacker.id, `→ ${target.id}：${logBase}｜未命中`, 'log-miss');
     }
   }
 

@@ -1,6 +1,6 @@
 {
   "name": "qi-zheng-interplay",
-  "version": "0.0.0",
+  "version": "0.4.1.4",
   "private": true,
   "type": "module",
   "description": "硬核战术规划模拟器 — Vue3 + Electron",
@@ -10,9 +10,28 @@
     "dev:electron": "cross-env ELECTRON_DEV=1 concurrently -k \"vite --host 127.0.0.1\" \"wait-on http://127.0.0.1:5173 && node electron/run.cjs electron/main.cjs\"",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "start": "node electron/run.cjs electron/main.cjs"
+    "start": "node electron/run.cjs electron/main.cjs",
+    "dist": "vue-tsc --noEmit && vite build && electron-builder",
+    "dist:win": "vue-tsc --noEmit && vite build && electron-builder --win"
+  },
+  "build": {
+    "appId": "com.fluidwarfare.qizheng",
+    "productName": "奇正相生",
+    "directories": { "output": "release" },
+    "files": ["dist/**/*", "electron/**/*", "package.json"],
+    "win": { "target": ["nsis"] },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "publish": [{
+      "provider": "github",
+      "owner": "Heaifan",
+      "repo": "qizheng-interplay"
+    }]
   },
   "dependencies": {
+    "electron-updater": "^6.8.3",
     "pinia": "^3.0.4",
     "vue": "^3.5.13"
   },
