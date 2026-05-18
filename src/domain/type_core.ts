@@ -69,7 +69,7 @@ export interface RuntimeUnit extends UnitTemplate {
   /** 累计受到压制值 */
   suppressionReceived: number;
   /** 受压制事件次数 */
-  suppressionHitCount: number;
+  suppressionEventCount: number;
   /** 上次被压制时间（ms） */
   lastSuppressedAtMs?: number;
   combatProfile: CombatProfile;

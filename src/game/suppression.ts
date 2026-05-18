@@ -2,7 +2,6 @@ import type { RuntimeUnit } from '@/domain/types';
 
 /** 计算一次射击造成的压制增量 */
 export function calculateSuppressionGain(input: {
-  firePressure: number;
   rounds: number;
   fireMode: string | undefined;
   hit: boolean;
@@ -18,6 +17,16 @@ export function calculateSuppressionGain(input: {
   const base = input.weaponSuppressionPower ?? 0.04;
 
   return base * roundsFactor * hitFactor * input.distanceFactor;
+}
+
+/** 重置单位的全部压制状态（用于重新执行战斗） */
+export function resetSuppressionState(unit: RuntimeUnit): void {
+  unit.suppression = 0;
+  unit.peakSuppression = 0;
+  unit.suppressionDealt = 0;
+  unit.suppressionReceived = 0;
+  unit.suppressionEventCount = 0;
+  unit.lastSuppressedAtMs = undefined;
 }
 
 /** 应用压制到目标 */
@@ -42,14 +51,22 @@ export function decaySuppression(unit: RuntimeUnit, deltaMs: number): void {
 
 /** 压制对命中率的影响倍率 */
 export function getSuppressionAccuracyMultiplier(unit: RuntimeUnit): number {
-  const s = unit.suppression ?? 0;
-  return Math.max(0.55, 1 - s * 0.45);
+  return getSuppressionAccuracyMultiplierByValue(unit.suppression ?? 0);
 }
 
 /** 压制对开火间隔的影响倍率 */
 export function getSuppressionFireIntervalMultiplier(unit: RuntimeUnit): number {
-  const s = unit.suppression ?? 0;
-  return 1 + s * 0.60;
+  return getSuppressionFireIntervalMultiplierByValue(unit.suppression ?? 0);
+}
+
+/** 给定压制值（0-1），计算命中率倍率（报告复用） */
+export function getSuppressionAccuracyMultiplierByValue(suppression: number): number {
+  return Math.max(0.55, 1 - Math.min(1, Math.max(0, suppression)) * 0.45);
+}
+
+/** 给定压制值（0-1），计算开火间隔倍率（报告复用） */
+export function getSuppressionFireIntervalMultiplierByValue(suppression: number): number {
+  return 1 + Math.min(1, Math.max(0, suppression)) * 0.60;
 }
 
 /** 压制状态文本标签 */

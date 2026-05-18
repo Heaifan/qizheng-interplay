@@ -83,16 +83,21 @@ export function createCombatActions(d: CombatDeps) {
       ? `｜伤×${burstDmgMult.toFixed(2)}｜压制×${burstSupMult.toFixed(2)}`
       : '';
 
+    const suppressionAccMult = getSuppressionAccuracyMultiplier(attacker);
+    const effectiveHitChance = ctx.hitChance * suppressionAccMult;
+    const hitText = suppressionAccMult < 0.995
+      ? `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%｜受压×${suppressionAccMult.toFixed(2)}｜实效 ${(effectiveHitChance * 100).toFixed(1)}%`
+      : `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%`;
+
     const logBase =
       `${fireWeapon.name} 开火${roundsStr}${ammoStr}${multStr}` +
+      `${hitText}` +
       `｜距 ${ctx.distance.toFixed(0)}m｜夹角 ${ctx.angleOffsetDeg.toFixed(0)}°` +
       `｜精度 ${ctx.weaponAccuracy.toFixed(3)}｜射程 ${ctx.effectiveRange.toFixed(0)}m` +
       `｜距离×${ctx.distanceModifier.toFixed(2)}` +
       `｜专注×${ctx.focusModifier.toFixed(2)}` +
       `｜打击×${ctx.strikeModifier.toFixed(2)}` +
-      `${modStr}` +
-      `｜命中率 ${(ctx.hitChance * 100).toFixed(1)}%` +
-      `｜火力压力 ${ctx.firePressure.toFixed(2)}`;
+      `${modStr}`;
 
     const fireOutput = calculateFireOutput(fireWeapon, {
       rangeM: ctx.distance,
@@ -102,13 +107,9 @@ export function createCombatActions(d: CombatDeps) {
 
     const foTag = formatFireOutputTag(fireOutput.value, fireOutput.outputProfileLabel, fireOutput.rangeBand, fireOutput.protectionLevel);
 
-    const suppressionAccMult = getSuppressionAccuracyMultiplier(attacker);
-    const effectiveHitChance = ctx.hitChance * suppressionAccMult;
-
     const hit = Math.random() < effectiveHitChance;
 
     const suppressionGain = calculateSuppressionGain({
-      firePressure: ctx.firePressure,
       rounds,
       fireMode: fireWeapon.fireMode,
       hit,
@@ -119,7 +120,7 @@ export function createCombatActions(d: CombatDeps) {
     applySuppression(target, suppressionGain, now);
     attacker.suppressionDealt += suppressionGain;
     target.suppressionReceived += suppressionGain;
-    target.suppressionHitCount++;
+    target.suppressionEventCount++;
     const supLog = `｜压制+${suppressionGain.toFixed(2)}｜${target.id}压制${target.suppression.toFixed(2)}`;
 
     if (hit) {

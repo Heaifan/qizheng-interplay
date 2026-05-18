@@ -1,6 +1,7 @@
 import type { CasualtyPoint, LogEntry, RuntimeUnit } from '@/domain/types';
 import { getWeaponById } from '@/domain/weaponRegistry';
 import { getUnitDisplayName } from '@/domain/unitDisplay';
+import { getSuppressionAccuracyMultiplierByValue, getSuppressionFireIntervalMultiplierByValue, getSuppressionLabel } from '@/game/suppression';
 
 export interface BattleReportUnit {
   id: string;
@@ -17,7 +18,7 @@ export interface BattleReportUnit {
   peakSuppression: number;
   suppressionDealt: number;
   suppressionReceived: number;
-  suppressionHitCount: number;
+  suppressionEventCount: number;
 }
 
 export interface BattleReport {
@@ -69,7 +70,7 @@ export function buildBattleReport(input: {
       peakSuppression: u.peakSuppression ?? 0,
       suppressionDealt: u.suppressionDealt ?? 0,
       suppressionReceived: u.suppressionReceived ?? 0,
-      suppressionHitCount: u.suppressionHitCount ?? 0,
+      suppressionEventCount: u.suppressionEventCount ?? 0,
       ...stats,
     };
   });
@@ -138,13 +139,13 @@ export function reportToMarkdown(report: BattleReport): string {
   lines.push('');
 
   lines.push('## 压制统计\n');
-  lines.push(`| 阵营 | 单位 | 最终压制 | 峰值压制 | 造成压制 | 受到压制 | 受压次数 | 命中影响 | 射速影响 |`);
+  lines.push(`| 阵营 | 单位 | 最终压制 | 峰值压制 | 造成压制 | 受到压制 | 受压事件 | 最低命中倍率 | 最高射速惩罚 |`);
   lines.push(`| --- | --- | ---:| ---:| ---:| ---:| ---:| ---:| ---:|`);
   for (const u of report.units) {
-    const supLabel = u.suppression > 0.75 ? '强压制' : u.suppression > 0.45 ? '中度' : u.suppression > 0.20 ? '轻度' : '无';
-    const hitMult = Math.max(0.55, 1 - u.suppression * 0.45);
-    const fireRateMult = 1 + u.suppression * 0.60;
-    lines.push(`| ${u.faction === 'blue' ? '蓝方' : '红方'} | ${u.displayName} | ${(u.suppression * 100).toFixed(0)}% ${supLabel} | ${(u.peakSuppression * 100).toFixed(0)}% | ${u.suppressionDealt.toFixed(2)} | ${u.suppressionReceived.toFixed(2)} | ${u.suppressionHitCount} | ×${hitMult.toFixed(2)} | ×${fireRateMult.toFixed(2)} |`);
+    const supLabel = getSuppressionLabel(u.suppression);
+    const peakHitMult = getSuppressionAccuracyMultiplierByValue(u.peakSuppression);
+    const peakFireMult = getSuppressionFireIntervalMultiplierByValue(u.peakSuppression);
+    lines.push(`| ${u.faction === 'blue' ? '蓝方' : '红方'} | ${u.displayName} | ${(u.suppression * 100).toFixed(0)}% ${supLabel} | ${(u.peakSuppression * 100).toFixed(0)}% | ${u.suppressionDealt.toFixed(2)} | ${u.suppressionReceived.toFixed(2)} | ${u.suppressionEventCount} | ×${peakHitMult.toFixed(2)} | ×${peakFireMult.toFixed(2)} |`);
   }
   lines.push('');
 

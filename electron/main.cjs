@@ -10,7 +10,7 @@ function createWindow() {
     height: 820,
     minWidth: 900,
     minHeight: 700,
-    title: '奇正相生-战斗模拟器 v0.4.1.5',
+    title: '奇正相生-战斗模拟器 v0.4.1.6',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

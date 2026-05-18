@@ -3,7 +3,8 @@ import { SHOT_ALPHA_DECAY } from '@/domain/constants';
 import type { GameMode, LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { advanceUnitAlongPath } from '@/game/movement';
 import { updateTacticalFacing } from '@/game/facing';
-import { decaySuppression } from '@/game/suppression';
+import { decaySuppression, resetSuppressionState } from '@/game/suppression';
+import { createWeaponRuntimeState } from '@/game/weaponRuntime';
 
 const SIM_STEP_MS = 1000 / 60;
 
@@ -54,7 +55,11 @@ export function createExecutionActions(d: ExecutionDeps) {
     // Reset to clean execution start state before saving baseline
     d.simElapsedMs.value = 0;
     d.shots.value = [];
-    for (const u of d.units.value) u.currentSpeedKmh = 0;
+    for (const u of d.units.value) {
+      u.currentSpeedKmh = 0;
+      resetSuppressionState(u);
+      u.weaponState = createWeaponRuntimeState(u.weaponId);
+    }
     d.mode.value = 'executing';
     d.executionState.value = 'paused';
     d.toolbarHighlight.value = 'exec';

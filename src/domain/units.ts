@@ -92,7 +92,7 @@ export function createRuntimeUnitsFromTemplates(templates: readonly UnitTemplate
       peakSuppression: 0,
       suppressionDealt: 0,
       suppressionReceived: 0,
-      suppressionHitCount: 0,
+      suppressionEventCount: 0,
       weaponId: profile.weapon.id,
       maxSpeedKmh: 6,
       currentSpeedKmh: 0,
