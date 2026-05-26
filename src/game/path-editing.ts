@@ -77,7 +77,7 @@ export function createPathEditActions(d: PathEditDeps) {
       d.units.value[idx]!.currentPathIdx,
       Math.max(0, prev.length - 1),
     );
-    d.addLog('系统', `已撤销 ${d.units.value[idx]!.id} 路线编辑`, 'log-miss');
+    d.addLog('系统', `已撤销 ${d.units.value[idx]!.id} 路线编辑`, 'log-system');
   }
 
   function redoPathEdit(): void {
@@ -91,7 +91,7 @@ export function createPathEditActions(d: PathEditDeps) {
       d.units.value[idx]!.currentPathIdx,
       Math.max(0, next.length - 1),
     );
-    d.addLog('系统', `已重做 ${d.units.value[idx]!.id} 路线编辑`, 'log-miss');
+    d.addLog('系统', `已重做 ${d.units.value[idx]!.id} 路线编辑`, 'log-system');
   }
 
   return {

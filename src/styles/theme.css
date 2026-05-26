@@ -1,0 +1,52 @@
+:root {
+  --app-bg: #EEE8D5;
+  --app-bg-soft: #E6DFC8;
+  --map-bg: #DCE3C8;
+  --map-border: #7A8B63;
+  --map-grid: rgba(110, 120, 90, 0.25);
+  --panel-bg: #F2ECD9;
+  --panel-card: #E7E0C9;
+  --panel-card-soft: #EFE6CD;
+  --panel-border: #B8AE8E;
+  --panel-divider: #C8BE9E;
+  --text-main: #2F2A22;
+  --text-muted: #5C554A;
+  --text-dim: #8A8477;
+  --text-inverse: #F8F1DC;
+  --accent: #B88A2E;
+  --accent-hover: #C79A3B;
+  --accent-soft: rgba(184, 138, 46, 0.18);
+  --blue-force: #4A7EA8;
+  --blue-force-soft: rgba(74, 126, 168, 0.18);
+  --red-force: #B85A4D;
+  --red-force-soft: rgba(184, 90, 77, 0.18);
+  --obstacle: #6D675E;
+  --bush: #97A874;
+  --bush-soft: rgba(151, 168, 116, 0.55);
+  --derived-bg: #D8DCC8;
+  --derived-border: #AEB997;
+  --derived-title: #4E5B3C;
+  --derived-text: #2F4A2A;
+  --warning: #B96F2C;
+  --danger: #A94438;
+  --input-bg: #F7F0D8;
+  --input-border: #AFA583;
+  --input-focus: #B88A2E;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #E7E0C9;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #B8AE8E;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A89972;
+}

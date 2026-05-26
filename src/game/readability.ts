@@ -1,24 +1,11 @@
-import { PX_PER_METER } from '@/domain/constants';
-import { segmentBlockedByAnyCover, segmentNearAnyBush } from '@/domain/geometry';
-import { BUSHES, COVERS } from '@/domain/terrain';
+import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
 import type { RuntimeUnit } from '@/domain/types';
-import { BASE_HIT_CHANCE, MAX_RANGE } from './combat';
+import { FIRE_ARC_HALF_RAD } from './combat';
+import { calculateDirectFireContext } from './combatFormula';
 
-export const FIRE_SECTOR_RADIUS_M = 220;
-export const FIRE_SECTOR_ANGLE_DEG = 75;
-export const VISION_SECTOR_RADIUS_M = 360;
-export const VISION_SECTOR_ANGLE_DEG = 120;
-export const FIRE_SECTOR_RADIUS = FIRE_SECTOR_RADIUS_M * PX_PER_METER;
-export const VISION_SECTOR_RADIUS = VISION_SECTOR_RADIUS_M * PX_PER_METER;
-export const HALF_FIRE_SECTOR_RAD = (FIRE_SECTOR_ANGLE_DEG * Math.PI) / 360;
-export const HALF_VISION_SECTOR_RAD = (VISION_SECTOR_ANGLE_DEG * Math.PI) / 360;
-
-export function normalizeAngleRad(v: number): number {
-  let a = v;
-  while (a > Math.PI) a -= Math.PI * 2;
-  while (a < -Math.PI) a += Math.PI * 2;
-  return a;
-}
+const VISION_ANGLE_DEG = 110;
+const VISION_RANGE = 700;
+const HALF_VISION_RAD = (VISION_ANGLE_DEG * Math.PI) / 360;
 
 export interface ReadabilityHint {
   attackerId: string;
@@ -31,8 +18,11 @@ export interface ReadabilityHint {
   blocked: boolean;
   throughBush: boolean;
   angleOffsetDeg: number;
-  inFireSector: boolean;
-  inVisionSector: boolean;
+  targetBearing: number;
+  attackerFacing: number;
+  fireArcHalfDeg: number;
+  inFireArc: boolean;
+  inPerception: boolean;
   hitChance: number;
   inRange: boolean;
   color: string;
@@ -49,40 +39,27 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
   ];
 
   return pair.map(({ attacker, target }) => {
-    const dx = target.x - attacker.x;
-    const dy = target.y - attacker.y;
-    const distance = Math.hypot(dx, dy);
-    const blocked = segmentBlockedByAnyCover(attacker.x, attacker.y, target.x, target.y, COVERS);
-    const throughBush = segmentNearAnyBush(attacker.x, attacker.y, target.x, target.y, BUSHES);
-    const targetBearing = Math.atan2(dy, dx);
-    const angleOffset = Math.abs(normalizeAngleRad(targetBearing - attacker.fireAngle));
-    const inFireSector = distance <= FIRE_SECTOR_RADIUS && angleOffset <= HALF_FIRE_SECTOR_RAD;
-    const inVisionSector = distance <= VISION_SECTOR_RADIUS && angleOffset <= HALF_VISION_SECTOR_RAD;
-    const angleFactor = inFireSector
-      ? 0.7 + Math.max(0, 1 - angleOffset / HALF_FIRE_SECTOR_RAD) * 0.3
-      : inVisionSector
-        ? 0.18
-        : 0.08;
-    let hitChance = BASE_HIT_CHANCE;
-    hitChance *= angleFactor;
-    if (blocked) hitChance *= 0.25;
-    if (throughBush) hitChance *= 0.6;
-    if (distance > MAX_RANGE) hitChance = 0;
+    const ctx = calculateDirectFireContext(attacker, target);
+    const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
+    const angleOffset = angleDiffRad(targetBearing, attacker.angle);
+    const inPerception = angleOffset <= HALF_VISION_RAD && ctx.distance <= VISION_RANGE;
+
     return {
       attackerId: attacker.id,
-      attackerX: attacker.x,
-      attackerY: attacker.y,
+      attackerX: attacker.x, attackerY: attacker.y,
       targetId: target.id,
-      targetX: target.x,
-      targetY: target.y,
-      distance,
-      blocked,
-      throughBush,
-      angleOffsetDeg: (angleOffset * 180) / Math.PI,
-      inFireSector,
-      inVisionSector,
-      hitChance,
-      inRange: distance <= MAX_RANGE,
+      targetX: target.x, targetY: target.y,
+      distance: ctx.distance,
+      blocked: ctx.blocked,
+      throughBush: ctx.throughBush,
+      angleOffsetDeg: ctx.angleOffsetDeg,
+      targetBearing,
+      attackerFacing: attacker.angle,
+      fireArcHalfDeg: radToDeg(FIRE_ARC_HALF_RAD),
+      inFireArc: ctx.inFireArc,
+      inPerception,
+      hitChance: ctx.hitChance,
+      inRange: ctx.inRange,
       color: attacker.stroke,
     };
   });

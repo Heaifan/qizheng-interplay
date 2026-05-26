@@ -8,15 +8,19 @@ export function drawReadabilityLines(
     ctx.beginPath();
     ctx.moveTo(hint.attackerX, hint.attackerY);
     ctx.lineTo(hint.targetX, hint.targetY);
-    ctx.globalAlpha = hint.inRange ? 0.35 : 0.18;
-    ctx.strokeStyle = hint.blocked
-      ? '#ffb300'
-      : hint.inFireSector
-        ? hint.color
-        : hint.inVisionSector
-          ? '#4fc3f7'
-          : '#90a4ae';
-    ctx.lineWidth = 1.5;
+    if (hint.inFireArc) {
+      ctx.globalAlpha = 0.20;
+      ctx.strokeStyle = hint.color;
+      ctx.lineWidth = 1;
+    } else if (hint.inPerception) {
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = '#b0a89a';
+      ctx.lineWidth = 0.8;
+    } else {
+      ctx.globalAlpha = 0.06;
+      ctx.strokeStyle = '#c8be9e';
+      ctx.lineWidth = 0.6;
+    }
     if (hint.blocked) ctx.setLineDash([8, 6]);
     ctx.stroke();
     ctx.setLineDash([]);
