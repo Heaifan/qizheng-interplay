@@ -1,11 +1,31 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.6.0-T1
+> **当前版本：** v0.6.0-T1-R1
 > **创建时间：** 2026-05-09
 > **最后编辑：** 2026-07-02 17:30
 
 > 本文件用于记录项目目录结构、模块职责与版本演进。  
 > 每次 AI 或人工修改代码后，如涉及新增、删除、重命名文件，必须同步更新本文档。
+
+---
+
+## 当前工作区更新 — v0.6.0-T1-R1
+
+> 更新日期：2026-07-02
+> 状态：已提交，承接 v0.6.0-T1
+
+### 重构
+- **terrainQuery.ts 拆分**：拆为 `terrain/terrainCoord.ts`（坐标换算，48行） + `terrain/terrainCellQuery.ts`（单格查询，112行） + `terrain/terrainSegmentSample.ts`（线段采样，108行），原文件降为 37 行兼容门面
+- **terrainSelfCheck.ts 拆分**：拆为 `terrain/terrainStats.ts`（统计扫描，128行） + `terrain/terrainShapeCheck.ts`（尺寸校验，91行） + `terrain/formatTerrainSelfCheck.ts`（格式化，63行），原文件降为 39 行入口门面
+
+### 新增
+- **图层尺寸一致性校验**：`terrainShapeCheck.ts` 检查 height / natural / water / vegetation / derived.* 的二维数组是否与 cols/rows 一致，自检输出新增「图层尺寸异常」
+- **terrain/** 子目录：所有地形子模块集中管理
+
+### 原则
+- 不改变任何战斗规则
+- 外部导入路径 `from './terrainQuery'` 保持兼容
+- 旧 `TerrainSelfCheckReport` 类型保持导出（标为 `@deprecated`）
 
 ---
 
@@ -385,9 +405,15 @@ src/
 | `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
 | `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形（旧版临时地物） |
 | `terrainMap.ts` | **BattleTerrainMap 数据模型**：地形图层结构定义、空地图工厂、深拷贝辅助 |
-| `terrainQuery.ts` | **统一地形查询入口**：坐标换算、单格查询、图层快捷查询（高度/水体/森林/高地）、线段步进采样 |
+| `terrainQuery.ts` | **统一地形查询入口（兼容门面）**：重新导出 terrain/ 子模块所有函数 |
 | `terrainFixture.ts` | **内置测试地图**：96×64 标准测试图，含河流/森林/山脊/盆地/高原 |
-| `terrainSelfCheck.ts` | **地形自检**：遍历地图输出尺寸、高度范围、水体/植被/高地/坡地格数、异常值统计 |
+| `terrainSelfCheck.ts` | **地形自检入口**：组织 terrainStats + terrainShapeCheck + 格式化输出 |
+| `terrain/terrainCoord.ts` | 坐标换算：worldToCol / worldToRow / worldToCell / cellToWorld / inBounds |
+| `terrain/terrainCellQuery.ts` | 单格查询：getCellInfo / getTerrainCell / getHeightAt / isWaterAt / isForestAt / isHighAt |
+| `terrain/terrainSegmentSample.ts` | 线段采样：sampleSegmentTerrain，步长=cellMeters |
+| `terrain/terrainStats.ts` | 统计扫描：遍历地图统计各类地貌格数、高度范围、异常值 |
+| `terrain/terrainShapeCheck.ts` | 图层尺寸校验：检查所有二维数组是否与 cols/rows 一致 |
+| `terrain/formatTerrainSelfCheck.ts` | 中文格式化输出：读取 TerrainStats + ShapeCheckResult → 可读字符串 |
 
 ### 5.4 src/game/
 
@@ -518,6 +544,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.6.0-T1-R1` | 2026-07-02 | 重构 | 地形数据模块拆分收口：terrainQuery/terrainSelfCheck 拆为 6 个子模块 + 图层尺寸一致性校验 |
 | `v0.6.0-T1` | 2026-07-02 | 功能 | 战斗侧地形数据存储对齐：BattleTerrainMap 模型 + terrainQuery + 测试地图 + 自检 |
 | `v0.4.1.6-dev` | 2026-05-26 | 功能 | 枪械动能火力输出生成器：源参数生成 `WeaponOutputProfile`，内置武器补弹头质量/初速/弹头结构，运行时 FireOutput 公式保持查表 |
 | `v0.3.1.1.7` | 2026-05-15 | 功能 | 武器目录独立 + 时间轴初始帧修复：seekToFrame 统一跳帧、weaponCatalog 8 把武器、单位档案武器切换、frame[0] 真实初始状态 |
@@ -557,6 +584,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 | `v0.4.0` | 替换 HP 系统，引入 1d10 伤势判定 |
 | `v0.5.0` | 初步接入三状态对战斗表现的影响 |
 | `v0.6.0-T1` | **战斗侧地形数据存储对齐**：BattleTerrainMap + terrainQuery + 测试地图 + 自检 ✅ |
+| `v0.6.0-T1-R1` | **地形数据模块轻量收口**：terrainQuery/terrainSelfCheck 拆分为 6 个子模块 + 图层尺寸校验 ✅ |
 | `v0.6.0-T2` | 战斗侧地形渲染显示：在 Canvas 上可视化 BattleTerrainMap |
 | `v0.6.0-T3` | 移动系统查询 terrainQuery：路径规划与移动受地形影响 |
 | `v0.6.0-T4` | 射界/视距系统查询 terrainQuery |
