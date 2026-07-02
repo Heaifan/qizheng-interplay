@@ -1,11 +1,47 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.4.1.6
+> **当前版本：** v0.6.0-T1
 > **创建时间：** 2026-05-09
-> **最后编辑：** 2026-05-17 11:30
+> **最后编辑：** 2026-07-02 17:30
 
 > 本文件用于记录项目目录结构、模块职责与版本演进。  
 > 每次 AI 或人工修改代码后，如涉及新增、删除、重命名文件，必须同步更新本文档。
+
+---
+
+## 当前工作区更新 — v0.6.0-T1
+
+> 更新日期：2026-07-02
+> 状态：已提交，承接 v0.6.0-T1
+
+### 新增
+- **BattleTerrainMap 数据模型**：`terrainMap.ts` 定义战斗侧地形主数据结构，对标编辑器 v0.5 的 heightMap / naturalMap / waterMap / vegetationMap
+- **统一地形查询入口**：`terrainQuery.ts` 提供坐标换算（worldToCell / cellToWorld）、单格查询（getTerrainCell / getHeightAt / isWaterAt / isForestAt）、线段采样（sampleSegmentTerrain）
+- **内置测试地图**：`terrainFixture.ts` 96×64 标准测试图，含河流、森林、山脊、盆地、高原
+- **地形自检函数**：`terrainSelfCheck.ts` 输出地图尺寸、高度范围、地貌格数、异常统计
+
+### 原则
+- 本轮仅定义数据结构和查询接口，不接入任何战斗规则
+- 所有外部系统必须通过 `terrainQuery` 访问地形，不直接读数组
+- 保留 `COVERS` / `BUSHES` 不删，旧地形降级为「旧版临时地物」
+
+---
+
+## 当前工作区更新 — v0.4.1.6-dev
+
+> 更新日期：2026-05-26
+> 状态：未发布，承接 v0.4.1.6
+
+### 新增
+- **枪械动能火力输出生成器**：`fireOutputGenerator.ts` 根据弹头质量、初速、口径与弹头结构生成 `WeaponOutputProfile`
+- **FireOutput 算法流程图文档**：`doc/fire-output-algorithm-flow.md` 保存 Mermaid 版 Input/Process/Output 流程图
+- `WeaponProfile` 增加源参数字段：`projectileMassG`、`muzzleVelocityMs`、`projectileDesign`、`cartridgeClass`
+- 内置 8 把武器补充弹头质量、初速、弹头结构与弹药类别
+
+### 调整
+- `resolveWeaponOutputProfile()` 优先使用源参数生成档案，保留 `outputProfileId` 与 `effectClass` fallback
+- FireOutput 运行时公式保持不变：`targetBase × rangeFactor × protectionFactor × deliveryModeFactor`
+- 机枪单发输出继续接近同弹种步枪，优势留给射速、压制与持续火力
 
 ---
 
@@ -295,12 +331,13 @@ src/
 | 模块 | 职责 | 是否依赖 Vue/Pinia |
 | --- | --- | --- |
 | `domain/` | 类型定义、单位模板、武器推导、几何计算、地形数据 | 否 |
-| `game/` | 移动、战斗、路径编辑、时间轴、战术可读性计算 | 否 |
+| `game/` | 移动、战斗、路径编辑、时间轴、压制系统 | 否 |
 | `stores/` | Pinia 状态、执行控制、回放、会话管理 | 是 |
 | `rendering/` | Canvas 绘制，不持有业务状态 | 否 |
 | `components/` | Vue UI 与用户交互 | 是 |
 | `styles/` | 主题、布局、控制条、地图、右侧面板样式 | 否 |
 | `utils/` | 通用工具函数 | 否 |
+| `doc/` | 设计文档 | 否 |
 
 ---
 
@@ -330,21 +367,27 @@ src/
 | --- | --- |
 | `types.ts` | **Barrel** — re-export from `type_weapon.ts` + `type_core.ts` |
 | `type_core.ts` | 核心类型：`GameMode`、`RuntimeUnit`、`CombatProfile`、`ShotTrail`、`LogEntry` 等 |
-| `type_weapon.ts` | 武器类型：`WeaponProfile`、`WeaponFamily`、`OutputMode`、`EffectClass` 等 |
+| `type_weapon.ts` | 武器类型：`WeaponProfile`、`WeaponFamily`、`OutputMode`、`EffectClass`，含火力输出源参数字段 |
 | `constants.ts` | 画布尺寸、网格比例、移动速度、弹道衰减等基础常量 |
 | `units.ts` | 蓝方 / 红方单位模板与 `RuntimeUnit` 工厂函数 |
 | `weapon.ts` | **武器基础推导唯一来源**：`weaponAccuracy` / `effectiveRange` / `terminalEffect` / `fireTempo` / `directFireContribution` |
-| `fireOutput.ts` | 火力输出模型：`calculateFireOutput` — EffectClass × 距离 × 防护 × 投送方式 |
+| `fireOutput.ts` | 火力输出模型：`calculateFireOutput` — 目标基础值 × 距离 × 防护 × 投送方式 |
+| `fireOutputGenerator.ts` | 枪械动能火力输出档案生成器：由弹头质量、初速、口径、弹头结构推导 `targetBase` |
 | `fireOutputTables.ts` | **Barrel** — re-export from `data_effectClassBase.ts` + `data_rangeProtection.ts` |
 | `data_effectClassBase.ts` | 34 种 EffectClass × 5 种目标类型的基准毁伤表 |
 | `data_rangeProtection.ts` | 距离衰减系数表 + 防护系数表 + `getRangeFactorsByOutputMode()` |
 | `fireOutputCurve.ts` | 曲线数据生成：`generateFireOutputCurve()`、`generateFireOutputTargetTable()` |
 | `fireOutputFormat.ts` | 中文格式化：`formatFireOutputTag()`、`formatEffectClass()`、`formatRangeBand()` 等 |
+| `weaponOutputProfiles.ts` | 输出档案与距离模型：优先源参数生成档案，fallback 到手工档案与旧字段 |
 | `helpers.ts` | 通用工具：`clamp` |
 | `camera.ts` | 战场相机：`CameraState`、`screenToWorld` / `worldToScreen`、`zoomAtScreenPoint`，1 world unit = 1 米 |
 | `angles.ts` | 角度工具：`normalizeAngleRad`、`angleDiffRad`、`bearingBetween`、`radToDeg` |
 | `geometry.ts` | 纯几何计算：线段相交、矩形遮挡、灌木距离判定 |
-| `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形 |
+| `terrain.ts` | 当前关卡地形数据：掩体矩形与灌木圆形（旧版临时地物） |
+| `terrainMap.ts` | **BattleTerrainMap 数据模型**：地形图层结构定义、空地图工厂、深拷贝辅助 |
+| `terrainQuery.ts` | **统一地形查询入口**：坐标换算、单格查询、图层快捷查询（高度/水体/森林/高地）、线段步进采样 |
+| `terrainFixture.ts` | **内置测试地图**：96×64 标准测试图，含河流/森林/山脊/盆地/高原 |
+| `terrainSelfCheck.ts` | **地形自检**：遍历地图输出尺寸、高度范围、水体/植被/高地/坡地格数、异常值统计 |
 
 ### 5.4 src/game/
 
@@ -475,6 +518,8 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.6.0-T1` | 2026-07-02 | 功能 | 战斗侧地形数据存储对齐：BattleTerrainMap 模型 + terrainQuery + 测试地图 + 自检 |
+| `v0.4.1.6-dev` | 2026-05-26 | 功能 | 枪械动能火力输出生成器：源参数生成 `WeaponOutputProfile`，内置武器补弹头质量/初速/弹头结构，运行时 FireOutput 公式保持查表 |
 | `v0.3.1.1.7` | 2026-05-15 | 功能 | 武器目录独立 + 时间轴初始帧修复：seekToFrame 统一跳帧、weaponCatalog 8 把武器、单位档案武器切换、frame[0] 真实初始状态 |
 | `v0.3.1.1.6` | 2026-05-15 | 重构 | FireOutput 输出档案重构：WeaponOutputProfile 模型、`resolveWeaponOutputProfile` 解析器、Kar98k/M91/30 绑定 full_power_rifle_direct |
 | `v0.3.1.1.5` | 2026-05-15 | 修复 | 单位选择状态解耦：`selectUnitByPoint` 纯查看 + 双击切换右侧档案 + 运行中可查看 |
@@ -511,7 +556,11 @@ domain/  ←  game/  ←  stores/  ←  components/
 | `v0.3.2+` | 其余五力（机动、生存、感知、控制、保障）逐步接入 |
 | `v0.4.0` | 替换 HP 系统，引入 1d10 伤势判定 |
 | `v0.5.0` | 初步接入三状态对战斗表现的影响 |
-| `v0.6.0` | 单兵到班级的聚合验证 |
+| `v0.6.0-T1` | **战斗侧地形数据存储对齐**：BattleTerrainMap + terrainQuery + 测试地图 + 自检 ✅ |
+| `v0.6.0-T2` | 战斗侧地形渲染显示：在 Canvas 上可视化 BattleTerrainMap |
+| `v0.6.0-T3` | 移动系统查询 terrainQuery：路径规划与移动受地形影响 |
+| `v0.6.0-T4` | 射界/视距系统查询 terrainQuery |
+| `v0.6.0-T5` | 从地图编辑器导出/导入 BattleTerrainMap |
 
 ---
 
@@ -568,6 +617,7 @@ docs/
 ├── combat-resolution.md
 ├── control-field-design.md
 ├── training-system-parking-lot.md
+├── fire-output-algorithm-flow.md
 ├── fire-output-weapon-family-model.md
 └── ui-style-guide.md
 ```
