@@ -1,11 +1,34 @@
 # 项目文件树 — 奇正相生：战斗模拟器
 
-> **当前版本：** v0.6.0-T1-R1
+> **当前版本：** v0.6.0-T2
 > **创建时间：** 2026-05-09
-> **最后编辑：** 2026-07-02 17:30
+> **最后编辑：** 2026-07-02 21:55
 
 > 本文件用于记录项目目录结构、模块职责与版本演进。  
 > 每次 AI 或人工修改代码后，如涉及新增、删除、重命名文件，必须同步更新本文档。
+
+---
+
+## 当前工作区更新 — v0.6.0-T2
+
+> 更新日期：2026-07-02
+> 状态：已提交，承接 v0.6.0-T1-R2
+
+### 新增
+- **地形渲染显示**：`drawBattleTerrainMap.ts` 将 BattleTerrainMap 绘制到战斗画布，5 层渲染（高度底色 / 派生覆盖 / 水体 / 植被 / 弱网格）
+- **地形配色系统**：`terrainRenderColors.ts` 集中管理各地貌类型颜色
+- **渲染自检**：`terrainRenderSelfCheck.ts` 输出地图尺寸、格数、开关状态
+- **渲染类型**：`renderTypes.ts` 从 tacticalCanvasRenderer.ts 拆分 TacticalRenderSnapshot
+- **地形图开关**：`GameToolbar.vue` 新增按钮 `toggleTerrainMap()`，默认开启
+
+### 调整
+- 默认加载 `createFixtureTerrainMap()` 作为测试地图
+- `tacticalCanvasRenderer.ts` 渲染顺序：BattleTerrainMap → COVERS/BUSHES → 其余
+
+### 原则
+- 本轮仅做显示，不接入任何战斗规则
+- COVERS / BUSHES 保留不受影响
+- 所有新增/修改文件 ≤100 行
 
 ---
 
@@ -441,7 +464,11 @@ src/
 | 文件 | 职责 |
 | --- | --- |
 | `tacticalCanvasRenderer.ts` | Canvas 渲染协调器，按顺序调用各子渲染函数 |
-| `drawTerrain.ts` | 绘制地图底色、掩体、灌木 |
+| `renderTypes.ts` | 渲染快照类型定义（TacticalRenderSnapshot），从 renderer 拆分 |
+| `drawBattleTerrainMap.ts` | **BattleTerrainMap 渲染**：高度底色 / 派生覆盖 / 水体 / 植被 / 弱网格 |
+| `terrainRenderColors.ts` | 地形渲染配色：高度插值 + 水体/植被/派生/网格色 |
+| `terrainRenderSelfCheck.ts` | 地形渲染自检：采集尺寸/格数/开关状态并格式化输出 |
+| `drawTerrain.ts` | 绘制旧版掩体 / 灌木（COVERS/BUSHES） |
 | `drawViewportGrid.ts` | 视口网格：基于 camera 当前可见范围铺 100m 世界坐标网格 |
 | `drawScaleBar.ts` | 动态比例尺 overlay，随 zoom 显示 25m/50m/100m/200m 等 |
 | `drawSectors.ts` | 绘制三层单位场：感知场、火力场、控制场 |
@@ -544,6 +571,8 @@ domain/  ←  game/  ←  stores/  ←  components/
 
 | 版本 | 日期 | 类型 | 说明 |
 | --- | --- | --- | --- |
+| `v0.6.0-T2` | 2026-07-02 | 功能 | 战斗侧地形渲染显示：BattleTerrainMap 可视化（高度/水体/植被/派生/网格 + 开关 + 自检） |
+| `v0.6.0-T1-R2` | 2026-07-02 | 重构 | 100 行红线整改：terrainCellQuery/terrainSegmentSample/terrainStats 拆分为 5 个子模块 |
 | `v0.6.0-T1-R1` | 2026-07-02 | 重构 | 地形数据模块拆分收口：terrainQuery/terrainSelfCheck 拆为 6 个子模块 + 图层尺寸一致性校验 |
 | `v0.6.0-T1` | 2026-07-02 | 功能 | 战斗侧地形数据存储对齐：BattleTerrainMap 模型 + terrainQuery + 测试地图 + 自检 |
 | `v0.4.1.6-dev` | 2026-05-26 | 功能 | 枪械动能火力输出生成器：源参数生成 `WeaponOutputProfile`，内置武器补弹头质量/初速/弹头结构，运行时 FireOutput 公式保持查表 |
@@ -585,7 +614,7 @@ domain/  ←  game/  ←  stores/  ←  components/
 | `v0.5.0` | 初步接入三状态对战斗表现的影响 |
 | `v0.6.0-T1` | **战斗侧地形数据存储对齐**：BattleTerrainMap + terrainQuery + 测试地图 + 自检 ✅ |
 | `v0.6.0-T1-R1` | **地形数据模块轻量收口**：terrainQuery/terrainSelfCheck 拆分为 6 个子模块 + 图层尺寸校验 ✅ |
-| `v0.6.0-T2` | 战斗侧地形渲染显示：在 Canvas 上可视化 BattleTerrainMap |
+| `v0.6.0-T2` | **战斗侧地形渲染显示**：BattleTerrainMap 可视化（高度/水体/植被/派生/网格 + 开关 + 自检） ✅ |
 | `v0.6.0-T3` | 移动系统查询 terrainQuery：路径规划与移动受地形影响 |
 | `v0.6.0-T4` | 射界/视距系统查询 terrainQuery |
 | `v0.6.0-T5` | 从地图编辑器导出/导入 BattleTerrainMap |
