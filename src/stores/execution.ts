@@ -1,5 +1,6 @@
 import type { Ref } from 'vue';
 import { SHOT_ALPHA_DECAY } from '@/domain/constants';
+import type { BattleTerrainMap } from '@/domain/terrainMap';
 import type { GameMode, LogEntry, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { advanceUnitAlongPath } from '@/game/movement';
 import { updateTacticalFacing } from '@/game/facing';
@@ -20,6 +21,7 @@ export interface ExecutionDeps {
   persistBaselineFrame: () => void;
   commitTimelineFrame: () => void;
   addLog: (unitId: string, text: string, tone: LogEntry['tone']) => void;
+  terrainMap: Ref<BattleTerrainMap | null>;
 }
 
 export function createExecutionActions(d: ExecutionDeps) {
@@ -34,7 +36,7 @@ export function createExecutionActions(d: ExecutionDeps) {
       s.alpha -= SHOT_ALPHA_DECAY;
       if (s.alpha <= 0) d.shots.value.splice(i, 1);
     }
-    for (const u of d.units.value) advanceUnitAlongPath(u);
+    for (const u of d.units.value) advanceUnitAlongPath(u, undefined, d.terrainMap.value ?? undefined);
     updateTacticalFacing(d.units.value);
     const now = d.simElapsedMs.value;
     const [blue, red] = d.units.value;
