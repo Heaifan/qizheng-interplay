@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import type { BattleTerrainMap } from '@/domain/terrainMap';
+import { createFixtureTerrainMap } from '@/domain/terrainFixture';
 import type { CameraState } from '@/domain/camera';
 import { DEFAULT_ZOOM } from '@/domain/camera';
 import type { GameMode, InteractionMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
@@ -33,6 +35,8 @@ export const useGameStore = defineStore('game', () => {
   const camera = ref<CameraState>({ zoom: DEFAULT_ZOOM, offsetX: 0, offsetY: 0 });
   const interactionMode = ref<InteractionMode>('browse');
   const ruler = ref<RulerState>({ active: false, visible: false, start: null, end: null });
+  const terrainMap = ref<BattleTerrainMap | null>(null);
+  const showTerrainMap = ref(false);
 
   function addLog(unitId: string, text: string, tone: LogEntry['tone']): void {
     logs.value.push({
@@ -55,7 +59,7 @@ export const useGameStore = defineStore('game', () => {
     mode, executionState, activePlannerIdx, highlightedUnitId, uiPanelTab,
     units, pathUndoStacks, pathRedoStacks,
     shots, logs, timeline, timelineIndex, simElapsedMs, toolbarHighlight,
-    takeSnapshot: tl.takeSnapshot, addLog,
+    takeSnapshot: tl.takeSnapshot, addLog, terrainMap, showTerrainMap,
   });
   const EXEC_START_IDX = 1;
   const playbackMin = computed(() =>
@@ -77,7 +81,7 @@ export const useGameStore = defineStore('game', () => {
     runSimulationTick: exec.runSimulationTick,
     commitTimelineFrame: tl.commitTimelineFrame,
   });
-  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera, ruler });
+  const derived = createDerivedState({ units, shots, mode, highlightedUnitId, uiPanelTab, camera, ruler, terrainMap, showTerrainMap });
 
   const canStepBack = computed(() => timelineIndex.value > playbackMin.value);
   const canStepForward = computed(() =>
@@ -141,6 +145,9 @@ export const useGameStore = defineStore('game', () => {
         exec.resumeExecution();
       }
     },
+    terrainMap,
+    showTerrainMap,
+    toggleTerrainMap: () => { showTerrainMap.value = !showTerrainMap.value; },
     resetSandbox: session.initGame,
     tick: exec.tick,
   };

@@ -8,7 +8,7 @@ const {
   canStepBack, canStepForward,
   canUndoPathEdit, canRedoPathEdit,
   playbackMin, playbackMax, timelineIndex,
-  uiPanelTab,
+  uiPanelTab, showTerrainMap,
 } = storeToRefs(game);
 
 function onTogglePlay() {
@@ -100,6 +100,18 @@ function onScrub(ev: Event) {
           d="M5 8C6.564 5.313 9.355 3.5 12.5 3.5C17.194 3.5 21 7.306 21 12C21 16.694 17.194 20.5 12.5 20.5C8.816 20.5 5.652 18.021 4 14.554" />
         <polyline fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"
           points="7,4 3,8 7,12" />
+      </svg>
+    </button>
+
+    <!-- 地形图开关 -->
+    <button type="button" class="btn-player btn-edit"
+      :class="{ active: showTerrainMap }" title="地形图开关"
+      @click="game.toggleTerrainMap()">
+      <svg class="toolbar-icon icon-md" viewBox="0 0 24 24" fill="none">
+        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          d="M3 5L8.5 3l7 3L21 4v16l-5.5 2-7-3L3 20V5z" />
+        <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          d="M8.5 3v16M15.5 7v16" />
       </svg>
     </button>
   </div>

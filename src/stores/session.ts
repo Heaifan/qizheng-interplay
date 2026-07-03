@@ -1,4 +1,6 @@
 import type { Ref } from 'vue';
+import type { BattleTerrainMap } from '@/domain/terrainMap';
+import { createFixtureTerrainMap } from '@/domain/terrainFixture';
 import type { GameMode, LogEntry, Point, RuntimeUnit, ShotTrail } from '@/domain/types';
 import { createRuntimeUnitsFromTemplates, UNIT_TEMPLATES } from '@/domain/units';
 import type { TimelineFrame } from '@/game/timeline';
@@ -20,6 +22,8 @@ export interface SessionDeps {
   toolbarHighlight: Ref<'blue' | 'red' | 'exec' | null>;
   takeSnapshot: () => TimelineFrame;
   addLog: (unitId: string, text: string, tone: LogEntry['tone']) => void;
+  terrainMap: Ref<BattleTerrainMap | null>;
+  showTerrainMap: Ref<boolean>;
 }
 
 export function createSessionActions(d: SessionDeps) {
@@ -37,6 +41,8 @@ export function createSessionActions(d: SessionDeps) {
     d.timelineIndex.value = 0;
     d.toolbarHighlight.value = null;
     d.highlightedUnitId.value = null;
+    d.terrainMap.value = createFixtureTerrainMap();
+    d.showTerrainMap.value = true;
     d.addLog('系统', '右键单位后开始绘制路径。', 'log-system');
     d.timeline.value.push(d.takeSnapshot());
   }
