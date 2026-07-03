@@ -1,4 +1,12 @@
+// ============================================================
+// readability — 战术可读性计算
+//
+// 支持可选 BattleTerrainMap：山脊/高地阻挡感知，森林/灌木削弱视距。
+// 无 map 时完全兼容旧行为。
+// ============================================================
+
 import { angleDiffRad, bearingBetween, radToDeg } from '@/domain/angles';
+import type { BattleTerrainMap } from '@/domain/terrainMap';
 import type { RuntimeUnit } from '@/domain/types';
 import { FIRE_ARC_HALF_RAD } from './combat';
 import { calculateDirectFireContext } from './combatFormula';
@@ -17,6 +25,7 @@ export interface ReadabilityHint {
   distance: number;
   blocked: boolean;
   throughBush: boolean;
+  terrainBlocked: boolean;
   angleOffsetDeg: number;
   targetBearing: number;
   attackerFacing: number;
@@ -28,7 +37,10 @@ export interface ReadabilityHint {
   color: string;
 }
 
-export function computeReadabilityHints(units: readonly RuntimeUnit[]): ReadabilityHint[] {
+export function computeReadabilityHints(
+  units: readonly RuntimeUnit[],
+  map?: BattleTerrainMap,
+): ReadabilityHint[] {
   if (units.length < 2) return [];
   const [blue, red] = units;
   if (!blue || !red || blue.dead || red.dead) return [];
@@ -39,10 +51,10 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
   ];
 
   return pair.map(({ attacker, target }) => {
-    const ctx = calculateDirectFireContext(attacker, target);
+    const ctx = calculateDirectFireContext(attacker, target, map);
     const targetBearing = bearingBetween(attacker.x, attacker.y, target.x, target.y);
     const angleOffset = angleDiffRad(targetBearing, attacker.angle);
-    const inPerception = angleOffset <= HALF_VISION_RAD && ctx.distance <= VISION_RANGE;
+    const inPerception = !ctx.terrainBlocked && angleOffset <= HALF_VISION_RAD && ctx.distance <= VISION_RANGE;
 
     return {
       attackerId: attacker.id,
@@ -52,6 +64,7 @@ export function computeReadabilityHints(units: readonly RuntimeUnit[]): Readabil
       distance: ctx.distance,
       blocked: ctx.blocked,
       throughBush: ctx.throughBush,
+      terrainBlocked: ctx.terrainBlocked,
       angleOffsetDeg: ctx.angleOffsetDeg,
       targetBearing,
       attackerFacing: attacker.angle,

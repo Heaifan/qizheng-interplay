@@ -46,7 +46,7 @@ function computeUnitFields(units: readonly RuntimeUnit[]) {
 }
 
 export function createDerivedState(d: DerivedDeps) {
-  const readabilityHints = computed(() => computeReadabilityHints(d.units.value));
+  const readabilityHints = computed(() => computeReadabilityHints(d.units.value, d.terrainMap.value ?? undefined));
 
   const showSectorLabels = computed(() => d.uiPanelTab.value === 'editor');
 
