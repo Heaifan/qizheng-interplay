@@ -2,6 +2,8 @@
 // terrainCellInfo — 单格地形信息查询
 //
 // 提供指定网格或世界坐标处的完整地形信息。
+// derived 优先读预计算 map.derived（deriveTerrain 填充），
+// 缺省回退实时 computeDerivedAt。
 // ============================================================
 
 import {
@@ -13,25 +15,7 @@ import {
   DerivedTerrain,
 } from '../terrainMap';
 import { worldToCell, inBounds } from './terrainCoord';
-
-const SLOPE_THRESHOLD = 0.06;
-
-function deriveCellType(
-  map: BattleTerrainMap,
-  col: number,
-  row: number,
-  water: number,
-  h: number,
-): DerivedTerrain {
-  if (water > 0) return DerivedTerrain.none;
-  const neighbors = [[col - 1, row], [col + 1, row], [col, row - 1], [col, row + 1]];
-  for (const [nc, nr] of neighbors) {
-    if (!inBounds(map, nc, nr)) continue;
-    if (Math.abs(h - map.height[nr][nc]) > SLOPE_THRESHOLD) return DerivedTerrain.slope;
-  }
-  if (map.natural[row][col] === NaturalTerrain.high) return DerivedTerrain.high;
-  return DerivedTerrain.none;
-}
+import { computeDerivedAt, reconstructDerived } from './terrainDerive';
 
 /** 取得指定网格的完整地形信息 */
 export function getCellInfo(
@@ -41,13 +25,16 @@ export function getCellInfo(
 ): TerrainCellInfo | null {
   if (!inBounds(map, col, row)) return null;
   const h = map.height[row][col];
+  const derived = map.derived
+    ? reconstructDerived(map.derived, row, col)
+    : computeDerivedAt(map, col, row);
   return {
     col, row,
     height: h,
     natural: map.natural[row][col] as NaturalTerrain,
     water: map.water[row][col] as WaterTerrain,
     vegetation: map.vegetation[row][col] as VegetationTerrain,
-    derived: deriveCellType(map, col, row, map.water[row][col], h),
+    derived,
   };
 }
 

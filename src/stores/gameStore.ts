@@ -50,7 +50,7 @@ export const useGameStore = defineStore('game', () => {
     units, mode, activePlannerIdx, pathUndoStacks, pathRedoStacks, addLog,
   });
   const combat = createCombatActions({
-    units, shots, logs, mode, executionState, simElapsedMs, addLog,
+    units, shots, logs, mode, executionState, simElapsedMs, terrainMap, addLog,
   });
   const tl = createTimelineActions({
     units, shots, logs, mode, simElapsedMs, executionState, timeline, timelineIndex,
@@ -71,7 +71,7 @@ export const useGameStore = defineStore('game', () => {
     tryFire: combat.tryFire,
     persistBaselineFrame: tl.persistBaselineFrame,
     commitTimelineFrame: tl.commitTimelineFrame,
-    addLog,
+    addLog, terrainMap,
   });
   const playback = createPlaybackActions({
     mode, executionState, units, shots, logs, simElapsedMs,
